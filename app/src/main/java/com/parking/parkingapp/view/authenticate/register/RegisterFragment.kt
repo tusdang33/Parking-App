@@ -1,16 +1,15 @@
 package com.parking.parkingapp.view.authenticate.register
 
-import android.os.Bundle
 import android.text.InputType
 import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
-import android.view.View
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.parking.parkingapp.R
@@ -25,11 +24,12 @@ import kotlinx.coroutines.launch
 class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
     private val viewModel: RegisterViewModel by viewModels()
     private var isShowingPassword = false
-    override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?
-    ) {
-        super.onViewCreated(view, savedInstanceState)
+
+    override fun initViews() {
+        //suppress
+    }
+
+    override fun initActions() {
         binding.registerBackButton.setOnClickListener {
             findNavController().popBackStack()
         }
@@ -75,8 +75,14 @@ class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
                 binding.registerEdtRetypePassword.setSelection(binding.registerEdtRetypePassword.text.length)
             }
         }
+    }
 
-        lifecycleScope.launch {
+    override fun intiData() {
+        //suppress
+    }
+
+    override fun obverseFromViewModel(scope: LifecycleCoroutineScope) {
+        scope.launch {
             viewModel.singleEvent.collect { state ->
                 when (state) {
                     is State.Error -> {

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <fragment
+        android:id="@+id/map_fragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".view.map.MapsFragment" />
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:padding="20dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/map_suggest_rcv"
+            android:layout_width="0dp"
+            android:elevation="3dp"
+            android:background="@drawable/white_rounded_bottom"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:translationY="-10dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/map_search_edt"
+            app:layout_constraintStart_toStartOf="@id/map_search_edt"
+            app:layout_constraintTop_toBottomOf="@id/map_search_edt"
+            tools:listitem="@layout/suggest_item" />
+
+        <EditText
+            android:id="@+id/map_search_edt"
+            style="@style/EditTextWhite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="Search"
+            android:elevation="6dp"
+            android:inputType="text"
+            android:paddingHorizontal="50dp"
+            android:textCursorDrawable="@drawable/cursor_color"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="LabelFor" />
+
+        <ImageView
+            android:id="@+id/map_search_icon"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginStart="15dp"
+            android:elevation="6dp"
+            android:src="@drawable/search"
+            app:layout_constraintBottom_toBottomOf="@id/map_search_edt"
+            app:layout_constraintStart_toStartOf="@id/map_search_edt"
+            app:layout_constraintTop_toTopOf="@id/map_search_edt"
+            tools:ignore="ContentDescription,RtlSymmetry" />
+
+        <ImageView
+            android:id="@+id/map_search_right_icon"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginEnd="15dp"
+            android:elevation="6dp"
+            android:src="@drawable/gps"
+            app:layout_constraintBottom_toBottomOf="@id/map_search_edt"
+            app:layout_constraintEnd_toEndOf="@id/map_search_edt"
+            app:layout_constraintTop_toTopOf="@id/map_search_edt"
+            tools:ignore="RtlSymmetry" />
+
+        <ImageButton
+            android:id="@+id/map_track"
+            style="@style/RoundedWhiteButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:padding="10dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/tracking"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:ignore="ContentDescription" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

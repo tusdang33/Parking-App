@@ -7,8 +7,6 @@ import androidx.viewbinding.ViewBinding
 abstract class BaseActivity<VB: ViewBinding>: AppCompatActivity() {
     private var _binding: VB? = null
     protected val binding get() = _binding!!
-
-    abstract fun getLayoutId(): Int
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {

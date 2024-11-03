@@ -1,11 +1,10 @@
 package com.parking.parkingapp.view.splash
 
 import android.annotation.SuppressLint
-import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
@@ -21,12 +20,24 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class SplashScreen: BaseFragment<FragmentSplashBinding>() {
     private val viewModel: SplashViewModel by viewModels()
-    override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?
-    ) {
-        super.onViewCreated(view, savedInstanceState)
+
+    override fun initViews() {
+        //suppress
+    }
+
+    override fun initActions() {
+        //suppress
+    }
+
+    override fun intiData() {
         lifecycleScope.launch {
+            delay(2000L)
+            viewModel.checkCurrentUser()
+        }
+    }
+
+    override fun obverseFromViewModel(scope: LifecycleCoroutineScope) {
+        scope.launch {
             viewModel.singleEvent.collect { state ->
                 when (state) {
                     is State.Error -> navigateToNextScreen(false)
@@ -41,10 +52,6 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
                     State.Success -> navigateToNextScreen(true)
                 }
             }
-        }
-        lifecycleScope.launch {
-            delay(2000L)
-            viewModel.checkCurrentUser()
         }
     }
 
