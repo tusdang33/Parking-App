@@ -1,9 +1,11 @@
 package com.parking.parkingapp.view
 
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp
 import com.parking.parkingapp.R
@@ -32,7 +34,13 @@ class MainActivity: BaseActivity<ActivityMainBinding>() {
                 NavigationOptions.Builder(applicationContext).build()
             }
         }
-
+        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (!findNavController(R.id.nav_host_fragment).popBackStack()) {
+                    finish()
+                }
+            }
+        })
     }
 
     fun mainNavController() = findNavController(R.id.nav_host_fragment)
