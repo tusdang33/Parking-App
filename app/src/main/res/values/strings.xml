@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">ParkingApp</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="parking_app">Parking App</string>
@@ -13,4 +13,5 @@
     <string name="username_or_password_invalid">Username or Password invalid</string>
     <string name="retype_password">Retype Password</string>
     <string name="go_to_login">Go to login</string>
+    <string name="mapbox_access_token" translatable="false" tools:ignore="UnusedResources">pk.eyJ1Ijoia2Fpem0iLCJhIjoiY20zMWt3bnpjMHdpYzJpczg3NnQ1b3g2MCJ9.Gg46woKIzLLgGjqaRrTBpg</string>
 </resources>

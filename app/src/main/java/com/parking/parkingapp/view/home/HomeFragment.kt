@@ -1,36 +1,69 @@
 package com.parking.parkingapp.view.home
 
-import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.parking.parkingapp.R
 import com.parking.parkingapp.common.State
 import com.parking.parkingapp.databinding.FragmentHomeBinding
 import com.parking.parkingapp.view.BaseFragment
+import com.parking.parkingapp.view.MainActivity
+import com.parking.parkingapp.view.drawer_menu.DrawerMenuFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class HomeFragment: BaseFragment<FragmentHomeBinding>() {
     private val viewModel: HomeViewModel by viewModels()
-    override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?
-    ) {
-        super.onViewCreated(view, savedInstanceState)
-        binding.homeLogoutBtn.setOnClickListener {
-            viewModel.logout()
+
+    override fun inflateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentHomeBinding = FragmentHomeBinding.inflate(inflater, container, false)
+
+    override fun initViews() {
+        //suppress
+    }
+
+    override fun initActions() {
+        binding.homeMapBtn.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_mapboxFragment)
         }
-        lifecycleScope.launch {
+        binding.homeMenuBtn.setOnClickListener {
+            (activity as? MainActivity)?.apply {
+                val drawerMenu = ((supportFragmentManager
+                    .findFragmentById(R.id.drawer_menu) as? NavHostFragment)
+                    ?.childFragmentManager
+                    ?.primaryNavigationFragment as? DrawerMenuFragment)
+                 drawerMenu?.open()
+            }
+        }
+    }
+
+    override fun intiData() {
+        //suppress
+    }
+
+    override fun obverseFromViewModel(scope: LifecycleCoroutineScope) {
+        scope.launch {
             viewModel.singleEvent.collect {
                 when (it) {
-                    is State.Error -> {}
-                    State.Idle -> {}
-                    State.Loading -> {}
+                    is State.Error -> {
+                        //suppress
+                    }
+
+                    State.Idle -> {
+                        //suppress
+                    }
+
+                    State.Loading -> {
+                        //suppress
+                    }
+
                     State.Success -> {
                         findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
                     }
@@ -38,9 +71,4 @@ class HomeFragment: BaseFragment<FragmentHomeBinding>() {
             }
         }
     }
-
-    override fun inflateBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?
-    ): FragmentHomeBinding = FragmentHomeBinding.inflate(inflater, container, false)
 }

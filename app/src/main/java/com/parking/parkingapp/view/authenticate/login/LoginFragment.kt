@@ -10,6 +10,7 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
@@ -25,11 +26,11 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
     private val viewModel: LoginViewModel by viewModels()
     private var isShowingPassword = false
 
-    override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?
-    ) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun initViews() {
+        //suppress
+    }
+
+    override fun initActions() {
         binding.loginBtn.setOnClickListener {
             viewModel.login(
                 binding.loginEdtAccount.text.toString(),
@@ -41,7 +42,29 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
             findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
         }
 
-        lifecycleScope.launch {
+        binding.loginEyeButton.setOnClickListener {
+            with(it as ImageView) {
+                if (isShowingPassword) {
+                    setImageResource(R.drawable.eye_on_fill)
+                    binding.loginEdtPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                    binding.loginEdtPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+                } else {
+                    setImageResource(R.drawable.eye_off_fill)
+                    binding.loginEdtPassword.inputType = InputType.TYPE_CLASS_TEXT
+                    binding.loginEdtPassword.transformationMethod = null
+                }
+                isShowingPassword = !isShowingPassword
+                binding.loginEdtPassword.setSelection(binding.loginEdtPassword.text.length)
+            }
+        }
+    }
+
+    override fun intiData() {
+        //suppress
+    }
+
+    override fun obverseFromViewModel(scope: LifecycleCoroutineScope) {
+        scope.launch {
             viewModel.singleEvent.collect { state ->
                 when (state) {
                     is State.Error -> {
@@ -62,22 +85,6 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
                         loadingVisible(false)
                     }
                 }
-            }
-        }
-
-        binding.loginEyeButton.setOnClickListener {
-            with(it as ImageView) {
-                if (isShowingPassword) {
-                    setImageResource(R.drawable.eye_on_fill)
-                    binding.loginEdtPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                    binding.loginEdtPassword.transformationMethod = PasswordTransformationMethod.getInstance()
-                } else {
-                    setImageResource(R.drawable.eye_off_fill)
-                    binding.loginEdtPassword.inputType = InputType.TYPE_CLASS_TEXT
-                    binding.loginEdtPassword.transformationMethod = null
-                }
-                isShowingPassword = !isShowingPassword
-                binding.loginEdtPassword.setSelection(binding.loginEdtPassword.text.length)
             }
         }
     }
@@ -108,4 +115,5 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
         inflater: LayoutInflater,
         container: ViewGroup?
     ): FragmentLoginBinding = FragmentLoginBinding.inflate(inflater, container, false)
+
 }

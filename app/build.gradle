@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.dagger.hilt)
     id 'kotlin-kapt'
     id 'kotlin-parcelize'
+    alias(libs.plugins.googleAndroidLibrariesMapsplatformSecretsGradlePlugin)
 }
 
 android {
@@ -52,6 +53,16 @@ dependencies {
     implementation libs.dagger.hilt
     implementation libs.androidx.navigation.fragment
     implementation libs.androidx.navigation.ui
+    implementation libs.google.service.map
+    implementation libs.map.support
+    implementation libs.google.service.location
+    implementation libs.retrofit
+    implementation libs.retrofit.converter
+    implementation libs.api.logger
+    implementation libs.mapbox
+    implementation libs.mapbox.map
+    implementation libs.mapbox.autocomplete
+    implementation libs.mapbox.navigation
     kapt(libs.dagger.hilt.complier)
     implementation platform(libs.firebase.bom)
     testImplementation libs.junit

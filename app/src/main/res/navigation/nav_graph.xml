@@ -13,6 +13,9 @@
             app:destination="@id/registerFragment" />
         <action
             android:id="@+id/action_loginFragment_to_homeFragment"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true"
             app:destination="@id/homeFragment" />
     </fragment>
     <fragment
@@ -41,6 +44,16 @@
         tools:layout="@layout/fragment_home" >
         <action
             android:id="@+id/action_homeFragment_to_loginFragment"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_mapboxFragment"
+            app:destination="@id/mapboxFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/mapboxFragment"
+        android:name="com.parking.parkingapp.view.map.MapboxFragment"
+        android:label="MapboxFragment" />
 </navigation>
