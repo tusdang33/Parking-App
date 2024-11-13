@@ -14,4 +14,5 @@
     <string name="retype_password">Retype Password</string>
     <string name="go_to_login">Go to login</string>
     <string name="mapbox_access_token" translatable="false" tools:ignore="UnusedResources">pk.eyJ1Ijoia2Fpem0iLCJhIjoiY20zMWt3bnpjMHdpYzJpczg3NnQ1b3g2MCJ9.Gg46woKIzLLgGjqaRrTBpg</string>
+    <string name="back">Back</string>
 </resources>

@@ -32,4 +32,9 @@
         <item name="android:padding">16dp</item>
         <item name="android:background">@drawable/white_rounded_outline</item>
     </style>
+
+    <style name="RoundedWhiteButtonNoPadding" parent="Widget.AppCompat.Button">
+        <item name="android:backgroundTint">@color/white</item>
+        <item name="android:src">@drawable/white_rounded_outline</item>
+    </style>
 </resources>

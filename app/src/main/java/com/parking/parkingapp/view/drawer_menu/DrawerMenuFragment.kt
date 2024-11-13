@@ -31,7 +31,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
     }
 
     override fun initActions() {
-        binding.drawerClose.setOnClickListener {
+        binding.drawerRightSideContainer.setOnClickListener {
             close()
         }
         binding.menuLogoutBtn.setOnClickListener {
@@ -83,6 +83,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
                 ).apply {
                     duration = 300L
                     doOnStart {
+                        binding.drawerBackground.visibility = VISIBLE
                         container.alpha = 1f
                     }
                     start()
@@ -119,6 +120,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
                     binding.drawerContainer.visibility = GONE
                     container.alpha = 0f
                     onDone?.invoke()
+                    binding.drawerBackground.visibility = GONE
                 }
                 start()
             }

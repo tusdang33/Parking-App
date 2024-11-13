@@ -46,5 +46,6 @@ class MainActivity: BaseActivity<ActivityMainBinding>() {
     fun mainNavController() = findNavController(R.id.nav_host_fragment)
     fun menuNavController() = findNavController(R.id.drawer_menu)
 
+
     override fun inflateBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
 }
