@@ -25,6 +25,7 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
     override fun initViews() {
         (activity as? MainActivity)?.apply {
             isShowHeader(false)
+            isFirstTimeLogin = true
         }
     }
 
@@ -63,7 +64,7 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
             .setPopUpTo(R.id.splashFragment, true)
             .build()
         if (isLogged) {
-            findNavController().navigate(R.id.action_splashFragment_to_homeFragment, null, navOption)
+            findNavController().navigate(R.id.action_splashFragment_to_mapboxFragment, null, navOption)
         } else {
             findNavController().navigate(R.id.action_splashFragment_to_loginFragment,null, navOption)
 

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.fragment.app.viewModels
@@ -21,6 +22,11 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
+
+    enum class ScreenType {
+        MAP, MY_PARKING, HISTORY
+    }
+
     private val viewModel: DrawerMenuViewModel by viewModels()
     override fun inflateBinding(
         inflater: LayoutInflater,
@@ -41,6 +47,27 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
         binding.drawerEditProfile.setOnClickListener {
             (activity as? MainActivity)?.apply {
                 mainNavController().navigate(R.id.profileFragment)
+            }
+            close()
+        }
+
+        binding.drawerMapButton.setOnClickListener {
+            (activity as? MainActivity)?.apply {
+                mainNavController().navigate(R.id.mapboxFragment)
+            }
+            close()
+        }
+
+        binding.drawerMyParkingButton.setOnClickListener {
+            (activity as? MainActivity)?.apply {
+                mainNavController().navigate(R.id.myParkingFragment)
+            }
+            close()
+        }
+
+        binding.drawerHistoryButton.setOnClickListener {
+            (activity as? MainActivity)?.apply {
+                mainNavController().navigate(R.id.historyFragment)
             }
             close()
         }
@@ -87,6 +114,27 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
 
                 it.username?.let { binding.drawerUsername.text = it }
             }
+        }
+    }
+
+    fun changeButtonState(screenType: ScreenType) {
+        binding.drawerMapButton.setBackgroundColor(requireContext().getColor(R.color.colorTransparent))
+        binding.drawerMyParkingButton.setBackgroundColor(requireContext().getColor(R.color.colorTransparent))
+        binding.drawerHistoryButton.setBackgroundColor(requireContext().getColor(R.color.colorTransparent))
+        when (screenType) {
+            ScreenType.MAP -> binding.drawerMapButton.background = AppCompatResources.getDrawable(
+                requireContext(),
+                R.drawable.white_rounded_outline
+            )
+
+            ScreenType.MY_PARKING -> binding.drawerMyParkingButton.background = AppCompatResources.getDrawable(
+                requireContext(),
+                R.drawable.white_rounded_outline
+            )
+            ScreenType.HISTORY -> binding.drawerHistoryButton.background = AppCompatResources.getDrawable(
+                requireContext(),
+                R.drawable.white_rounded_outline
+            )
         }
     }
 

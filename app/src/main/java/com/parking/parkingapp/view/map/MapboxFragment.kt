@@ -198,6 +198,9 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
     }
 
     override fun initActions() {
+        binding.mapMenu.setOnClickListener {
+            getDrawerMenu()?.open()
+        }
         binding.mapSearchRightIcon.setOnClickListener {
             if (binding.mapSuggestRcv.visibility == View.VISIBLE) {
                 binding.mapSuggestRcv.visibility = View.GONE
@@ -395,7 +398,10 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         point: Point,
         zoom: Double = ZOOM_10F
     ) {
-        val mapAnimationOptions = MapAnimationOptions.Builder().duration(1000L).build()
+        val mapAnimationOptions = MapAnimationOptions.Builder().duration(
+            if ((activity as MainActivity).isFirstTimeLogin) 1000L
+            else 0L
+        ).build()
         binding.mapView.camera.easeTo(
             CameraOptions.Builder()
                 .center(point)
@@ -403,6 +409,7 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                 .pitch(45.0)
                 .padding(EdgeInsets(100.0, 0.0, 0.0, 0.0)).build(), mapAnimationOptions
         )
+        (activity as MainActivity).isFirstTimeLogin = false
     }
 
     private fun checkLocationPermission() {

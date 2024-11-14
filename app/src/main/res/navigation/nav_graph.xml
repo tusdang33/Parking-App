@@ -36,6 +36,9 @@
         <action
             android:id="@+id/action_splashFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_splashFragment_to_mapboxFragment"
+            app:destination="@id/mapboxFragment" />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
@@ -61,4 +64,14 @@
         android:name="com.parking.parkingapp.view.profile.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.parking.parkingapp.view.history.HistoryFragment"
+        android:label="fragment_history"
+        tools:layout="@layout/fragment_history" />
+    <fragment
+        android:id="@+id/myParkingFragment"
+        android:name="com.parking.parkingapp.view.my_parking.MyParkingFragment"
+        android:label="fragment_my_parking"
+        tools:layout="@layout/fragment_my_parking" />
 </navigation>
