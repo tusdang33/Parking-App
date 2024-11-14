@@ -41,12 +41,13 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun updateUserData(username: String?) = viewModelScope.launch(NonCancellable) {
+        sendSingleEvent(State.Loading)
         authRepository.updateProfile(
             name = username,
             email = null,
             image = pickedImage.toString()
         ).success {
-            sendSingleEvent(State.Success)
+            sendSingleEvent(State.Success())
         }
     }
 }

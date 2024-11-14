@@ -10,6 +10,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.bumptech.glide.Glide
 import com.parking.parkingapp.R
 import com.parking.parkingapp.common.State
 import com.parking.parkingapp.databinding.FragmentDrawerMenuBinding
@@ -46,7 +47,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
     }
 
     override fun intiData() {
-        //suppress
+        viewModel.fetchUserData()
     }
 
     override fun obverseFromViewModel(scope: LifecycleCoroutineScope) {
@@ -65,7 +66,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
                         //suppress
                     }
 
-                    State.Success -> {
+                    is State.Success -> {
                         close() {
                             (activity as? MainActivity)?.apply {
                                 mainNavController().navigate(R.id.action_homeFragment_to_loginFragment)
@@ -73,6 +74,18 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
                         }
                     }
                 }
+            }
+        }
+        scope.launch {
+            viewModel.userData.collect {
+                Glide
+                    .with(requireContext())
+                    .load(it.image)
+                    .centerCrop()
+                    .placeholder(R.drawable.man)
+                    .into(binding.drawerAvatar)
+
+                it.username?.let { binding.drawerUsername.text = it }
             }
         }
     }

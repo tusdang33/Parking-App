@@ -49,7 +49,7 @@ class LoginViewModel @Inject constructor(
 
         authRepository.login(email, password)
             .success {
-                sendSingleEvent(State.Success)
+                sendSingleEvent(State.Success())
             }
             .fail {
                 sendSingleEvent(

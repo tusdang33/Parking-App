@@ -1,4 +1,4 @@
-package com.parking.parkingapp.view.profile
+package com.parking.parkingapp.view.profile.change_password
 
 import android.text.InputType
 import android.text.method.PasswordTransformationMethod
@@ -7,14 +7,26 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.parking.parkingapp.R
+import com.parking.parkingapp.common.State
+import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.databinding.BottomsheetChangePasswordBinding
 import com.parking.parkingapp.view.BaseDialog
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class ChangePasswordBottomSheet : BaseDialog<BottomsheetChangePasswordBinding>() {
+    private val viewModel: ChangePasswordViewModel by viewModels()
+
     private var isShowingOldPassword = false
     private var isShowingNewPassword = false
     private var isShowingRetypePassword = false
+    var onSuccess: (() -> Unit)? = null
+    var email: String? = null
+
     override fun inflateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -29,7 +41,48 @@ class ChangePasswordBottomSheet : BaseDialog<BottomsheetChangePasswordBinding>()
     }
 
     override fun initView() {
-        //suppress
+        lifecycleScope.launch {
+            viewModel.singleEvent.collect { state ->
+                when (state) {
+                    is State.Error -> {
+                        loadingVisible(false)
+                        handleChangePasswordError(state.error as FormatChangePasswordError)
+                    }
+
+                    State.Idle -> TODO()
+                    State.Loading -> loadingVisible(true)
+                    is State.Success -> {
+                        loadingVisible(false)
+                        dismiss()
+                        onSuccess?.invoke()
+                    }
+                }
+
+            }
+        }
+    }
+
+    private fun handleChangePasswordError(changePasswordError: FormatChangePasswordError) {
+        val (emailError, passwordError, retypeError, commonError) = changePasswordError
+        binding.profileErrorOldPassword.apply {
+            hasVisible = emailError != null
+            text = emailError
+        }
+
+        binding.profileErrorNewPassword.apply {
+            hasVisible = passwordError != null
+            text = passwordError
+        }
+
+        binding.profileErrorRetypePassword.apply {
+            hasVisible = retypeError != null
+            text = retypeError
+        }
+
+        binding.profileErrorCommon.apply {
+            hasVisible = commonError != null
+            text = commonError
+        }
     }
 
     override fun initActions() {
@@ -83,6 +136,20 @@ class ChangePasswordBottomSheet : BaseDialog<BottomsheetChangePasswordBinding>()
                 setSelection(this.text.length)
             }
         }
+
+        binding.saveChangePassword.setOnClickListener {
+            viewModel.submitPassword(
+                email = email ?: "",
+                oldPassword = binding.changeEdtOldPassword.text.toString(),
+                newPassword = binding.changeEdtNewPassword.text.toString(),
+                retypePassword = binding.changeEdtRetypePassword.text.toString(),
+            )
+        }
+    }
+
+    private fun loadingVisible(isLoading: Boolean) {
+        binding.changePassLoading.hasVisible = isLoading
+        binding.saveChangePassword.hasVisible = !isLoading
     }
 
     override fun onCreateCustomAnimation(): Int = R.style.BottomSheetDialogAnim

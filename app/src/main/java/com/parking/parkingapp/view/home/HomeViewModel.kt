@@ -15,6 +15,6 @@ class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ): BaseViewModel() {
     fun logout() = viewModelScope.launch {
-        authRepository.logout().success {sendSingleEvent(State.Success) }
+        authRepository.logout().success {sendSingleEvent(State.Success()) }
     }
 }

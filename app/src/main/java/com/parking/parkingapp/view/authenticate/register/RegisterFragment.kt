@@ -103,7 +103,7 @@ class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
                         loadingVisible(true)
                     }
 
-                    State.Success -> {
+                    is State.Success -> {
                         handleRegisterError(FormatRegisterError())
                         findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
                         loadingVisible(false)

@@ -79,7 +79,7 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
                         loadingVisible(true)
                     }
 
-                    State.Success -> {
+                    is State.Success -> {
                         navigateToHomeScreen()
                         handleLoginError(FormatLoginError())
                         loadingVisible(false)

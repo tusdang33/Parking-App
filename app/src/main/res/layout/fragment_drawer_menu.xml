@@ -47,10 +47,23 @@
         tools:visibility="visible">
 
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_avatar"
+            android:id="@+id/drawer_avatar"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:src="@color/black" />
+            android:src="@drawable/man" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="5dp" />
+
+        <TextView
+            android:id="@+id/drawer_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Username"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <Space
             android:layout_width="wrap_content"

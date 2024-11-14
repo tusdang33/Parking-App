@@ -66,7 +66,7 @@ class HomeFragment: BaseFragment<FragmentHomeBinding>() {
                         //suppress
                     }
 
-                    State.Success -> {
+                    is State.Success -> {
                         findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
                     }
                 }

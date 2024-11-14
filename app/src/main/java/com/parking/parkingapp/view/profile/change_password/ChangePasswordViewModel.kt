@@ -1,4 +1,4 @@
-package com.parking.parkingapp.view.authenticate.login
+package com.parking.parkingapp.view.profile.change_password
 
 import androidx.lifecycle.viewModelScope
 import com.parking.parkingapp.common.BaseViewModel
@@ -7,77 +7,79 @@ import com.parking.parkingapp.common.State
 import com.parking.parkingapp.common.fail
 import com.parking.parkingapp.common.success
 import com.parking.parkingapp.data.repository.AuthRepository
-import com.parking.parkingapp.domain.usecase.ValidateEmailUseCase
 import com.parking.parkingapp.domain.usecase.ValidatePasswordUseCase
 import com.parking.parkingapp.domain.usecase.ValidateRetypePasswordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor(
+class ChangePasswordViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val validateEmailUseCase: ValidateEmailUseCase,
     private val validatePasswordUseCase: ValidatePasswordUseCase,
     private val validateRetypePasswordUseCase: ValidateRetypePasswordUseCase,
 ): BaseViewModel() {
-
-    fun register(
+    fun submitPassword(
         email: String,
-        password: String,
+        oldPassword: String,
+        newPassword: String,
         retypePassword: String,
-    ) = viewModelScope.launch() {
-        sendSingleEvent(State.Loading)
-        delay(200L)
-        val emailValidateResult = validateEmailUseCase(email)
-        val passwordValidateResult = validatePasswordUseCase(password)
+    ) = viewModelScope.launch(NonCancellable) {
+        val passwordValidateResult = validatePasswordUseCase(newPassword)
         val retypePasswordValidateResult = validateRetypePasswordUseCase(
-            password,
+            newPassword,
             retypePassword
         )
 
         val hasError = listOf(
-            emailValidateResult,
             passwordValidateResult,
             retypePasswordValidateResult
         ).any { !it.successful }
-
+        val changePasswordError = FormatChangePasswordError()
         if (hasError) {
             sendSingleEvent(
                 State.Error(
-                    FormatRegisterError(
-                        emailError = emailValidateResult.errorMessage,
+                    changePasswordError.copy(
                         passwordError = passwordValidateResult.errorMessage,
-                        retypePasswordError = retypePasswordValidateResult.errorMessage,
+                        retypePasswordError = retypePasswordValidateResult.errorMessage
                     )
                 )
             )
             return@launch
         }
-
-        authRepository.register(
-            email,
-            password
-        )
-            .success {
-                sendSingleEvent(State.Success())
-            }
-            .fail {
-                sendSingleEvent(
-                    State.Error(
-                        FormatRegisterError(
-                            commonError = it
-                        )
+        authRepository.login(email, oldPassword).fail {
+            sendSingleEvent(
+                State.Error(
+                    changePasswordError.copy(
+                        oldPasswordError = it
                     )
                 )
-            }
+            )
+        }.success {
+            updatePass(newPassword)
+        }
+    }
+
+    private fun updatePass(newPass: String) = viewModelScope.launch(NonCancellable) {
+        sendSingleEvent(State.Loading)
+        authRepository.updatePass(newPass).success {
+            sendSingleEvent(State.Success())
+        }.fail {
+            sendSingleEvent(
+                State.Error(
+                    FormatChangePasswordError(
+                        commonError = it
+                    )
+                )
+            )
+        }
     }
 }
 
-internal data class FormatRegisterError(
-    val emailError: String? = null,
+data class FormatChangePasswordError(
+    val oldPasswordError: String? = null,
     val passwordError: String? = null,
     val retypePasswordError: String? = null,
     val commonError: String? = null
-) : ErrorDataState
+): ErrorDataState

@@ -107,11 +107,24 @@
         android:layout_marginVertical="20dp"
         android:background="@color/gray" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/profile_change"
-        style="@style/BlackFilledButton"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/blue"
-        android:text="Save Change" />
+        android:layout_height="wrap_content">
+
+        <ProgressBar
+            android:id="@+id/profile_loading"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/blue" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/profile_change"
+            style="@style/BlackFilledButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/blue"
+            android:text="Save Change" />
+    </FrameLayout>
 </LinearLayout>

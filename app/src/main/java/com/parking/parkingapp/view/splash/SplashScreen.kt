@@ -52,7 +52,7 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
                         // suppress
                     }
 
-                    State.Success -> navigateToNextScreen(true)
+                    is State.Success -> navigateToNextScreen(true)
                 }
             }
         }
