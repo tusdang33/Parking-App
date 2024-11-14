@@ -5,10 +5,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp
 import com.parking.parkingapp.R
+import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -45,6 +45,20 @@ class MainActivity: BaseActivity<ActivityMainBinding>() {
 
     fun mainNavController() = findNavController(R.id.nav_host_fragment)
     fun menuNavController() = findNavController(R.id.drawer_menu)
+
+    fun setOnHeaderBack(onBack: (() -> Unit)? = null) {
+        binding.headerBack.setOnClickListener {
+            onBack?.invoke() ?: findNavController(R.id.nav_host_fragment).popBackStack()
+        }
+    }
+
+    fun setHeaderTitle(title: String) {
+        binding.headerTitle.text = title
+    }
+
+    fun isShowHeader(isShow: Boolean) {
+        binding.header.hasVisible = isShow
+    }
 
 
     override fun inflateBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)

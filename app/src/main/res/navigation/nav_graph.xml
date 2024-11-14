@@ -56,4 +56,9 @@
         android:id="@+id/mapboxFragment"
         android:name="com.parking.parkingapp.view.map.MapboxFragment"
         android:label="MapboxFragment" />
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.parking.parkingapp.view.profile.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
 </navigation>

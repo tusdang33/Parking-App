@@ -37,6 +37,12 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
         binding.menuLogoutBtn.setOnClickListener {
             viewModel.logout()
         }
+        binding.drawerEditProfile.setOnClickListener {
+            (activity as? MainActivity)?.apply {
+                mainNavController().navigate(R.id.profileFragment)
+            }
+            close()
+        }
     }
 
     override fun intiData() {

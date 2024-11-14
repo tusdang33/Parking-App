@@ -12,6 +12,7 @@ import com.parking.parkingapp.R
 import com.parking.parkingapp.common.State
 import com.parking.parkingapp.databinding.FragmentSplashBinding
 import com.parking.parkingapp.view.BaseFragment
+import com.parking.parkingapp.view.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,7 +23,9 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
     private val viewModel: SplashViewModel by viewModels()
 
     override fun initViews() {
-        //suppress
+        (activity as? MainActivity)?.apply {
+            isShowHeader(false)
+        }
     }
 
     override fun initActions() {

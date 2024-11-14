@@ -3,19 +3,20 @@ package com.parking.parkingapp.view.authenticate.register
 import android.text.InputType
 import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
-import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.parking.parkingapp.R
 import com.parking.parkingapp.common.State
+import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.databinding.FragmentRegisterBinding
 import com.parking.parkingapp.view.BaseFragment
+import com.parking.parkingapp.view.MainActivity
+import com.parking.parkingapp.view.authenticate.login.FormatRegisterError
 import com.parking.parkingapp.view.authenticate.login.RegisterViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -24,9 +25,12 @@ import kotlinx.coroutines.launch
 class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
     private val viewModel: RegisterViewModel by viewModels()
     private var isShowingPassword = false
+    private var isShowingRetypePassword = false
 
     override fun initViews() {
-        //suppress
+        (activity as? MainActivity)?.apply {
+            isShowHeader(false)
+        }
     }
 
     override fun initActions() {
@@ -44,35 +48,37 @@ class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
             findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
         }
 
-        binding.registerEyeButton.setOnClickListener {
-            with(it as ImageView) {
+        binding.registerEyeButton.setOnClickListener { eye ->
+            with(binding.registerEdtPassword) {
                 if (isShowingPassword) {
-                    setImageResource(R.drawable.eye_on_fill)
-                    binding.registerEdtPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                    binding.registerEdtPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+                    (eye as ImageView).setImageResource(R.drawable.eye_on_fill)
+                    inputType =
+                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                    transformationMethod = PasswordTransformationMethod.getInstance()
                 } else {
-                    setImageResource(R.drawable.eye_off_fill)
-                    binding.registerEdtPassword.inputType = InputType.TYPE_CLASS_TEXT
-                    binding.registerEdtPassword.transformationMethod = null
+                    (eye as ImageView).setImageResource(R.drawable.eye_off_fill)
+                    inputType = InputType.TYPE_CLASS_TEXT
+                    transformationMethod = null
                 }
                 isShowingPassword = !isShowingPassword
-                binding.registerEdtPassword.setSelection(binding.registerEdtPassword.text.length)
+                setSelection(this.text.length)
             }
         }
 
-        binding.registerEyeRetype.setOnClickListener {
-            with(it as ImageView) {
-                if (isShowingPassword) {
-                    setImageResource(R.drawable.eye_on_fill)
-                    binding.registerEdtRetypePassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                    binding.registerEdtRetypePassword.transformationMethod = PasswordTransformationMethod.getInstance()
+        binding.registerEyeRetype.setOnClickListener { eye ->
+            with(binding.registerEdtRetypePassword) {
+                if (isShowingRetypePassword) {
+                    (eye as ImageView).setImageResource(R.drawable.eye_on_fill)
+                    inputType =
+                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                    transformationMethod = PasswordTransformationMethod.getInstance()
                 } else {
-                    setImageResource(R.drawable.eye_off_fill)
-                    binding.registerEdtRetypePassword.inputType = InputType.TYPE_CLASS_TEXT
-                    binding.registerEdtRetypePassword.transformationMethod = null
+                    (eye as ImageView).setImageResource(R.drawable.eye_off_fill)
+                    inputType = InputType.TYPE_CLASS_TEXT
+                    transformationMethod = null
                 }
-                isShowingPassword = !isShowingPassword
-                binding.registerEdtRetypePassword.setSelection(binding.registerEdtRetypePassword.text.length)
+                isShowingRetypePassword = !isShowingRetypePassword
+                setSelection(this.text.length)
             }
         }
     }
@@ -86,7 +92,7 @@ class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
             viewModel.singleEvent.collect { state ->
                 when (state) {
                     is State.Error -> {
-                        visibleTextError(true)
+                        handleRegisterError(state.error as FormatRegisterError)
                         loadingVisible(false)
                     }
 
@@ -98,7 +104,7 @@ class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
                     }
 
                     State.Success -> {
-                        visibleTextError(false)
+                        handleRegisterError(FormatRegisterError())
                         findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
                         loadingVisible(false)
                     }
@@ -118,8 +124,27 @@ class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
 
     }
 
-    private fun visibleTextError(visible: Boolean) {
-        binding.registerTextError.visibility = if (visible) VISIBLE else GONE
+    private fun handleRegisterError(registerError: FormatRegisterError) {
+        val (emailError, passwordError, retypeError, commonError) = registerError
+        binding.registerErrorEmail.apply {
+            hasVisible = emailError != null
+            text = emailError
+        }
+
+        binding.registerErrorPassword.apply {
+            hasVisible = passwordError != null
+            text = passwordError
+        }
+
+        binding.registerErrorRetypePassword.apply {
+            hasVisible = retypeError != null
+            text = retypeError
+        }
+
+        binding.registerErrorCommon.apply {
+            hasVisible = commonError != null
+            text = commonError
+        }
     }
 
     override fun inflateBinding(

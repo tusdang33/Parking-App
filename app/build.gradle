@@ -64,6 +64,7 @@ dependencies {
     implementation libs.mapbox.autocomplete
     implementation libs.mapbox.navigation
     implementation libs.circle.imageview
+    implementation libs.image.glide
     kapt(libs.dagger.hilt.complier)
     implementation platform(libs.firebase.bom)
     testImplementation libs.junit

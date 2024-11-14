@@ -26,7 +26,9 @@ class HomeFragment: BaseFragment<FragmentHomeBinding>() {
     ): FragmentHomeBinding = FragmentHomeBinding.inflate(inflater, container, false)
 
     override fun initViews() {
-        //suppress
+        (activity as? MainActivity)?.apply {
+            isShowHeader(false)
+        }
     }
 
     override fun initActions() {

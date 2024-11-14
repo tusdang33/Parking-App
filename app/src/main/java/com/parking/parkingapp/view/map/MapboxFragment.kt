@@ -61,6 +61,7 @@ import com.parking.parkingapp.common.BDX
 import com.parking.parkingapp.common.hideKeyboard
 import com.parking.parkingapp.databinding.FragmentMapboxBinding
 import com.parking.parkingapp.view.BaseFragment
+import com.parking.parkingapp.view.MainActivity
 import com.parking.parkingapp.view.map.ui.PDivierItemDecoration
 import com.parking.parkingapp.view.map.ui.ParkingMarker
 import dagger.hilt.android.AndroidEntryPoint
@@ -114,6 +115,9 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
 
     override fun initViews() {
         checkLocationPermission()
+        (activity as? MainActivity)?.apply {
+            isShowHeader(false)
+        }
         binding.mapView.apply {
             compass.enabled = false
             logo.enabled = false
