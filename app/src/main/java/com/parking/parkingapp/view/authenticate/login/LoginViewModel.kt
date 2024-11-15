@@ -1,5 +1,6 @@
 package com.parking.parkingapp.view.authenticate.login
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.parking.parkingapp.common.BaseViewModel
 import com.parking.parkingapp.common.ErrorDataState
@@ -20,6 +21,8 @@ class LoginViewModel @Inject constructor(
     private val validateEmailUseCase: ValidateEmailUseCase,
     private val validatePasswordUseCase: ValidatePasswordUseCase,
 ): BaseViewModel() {
+
+    private var loginFailCount = 0
 
     fun login(
         email: String,
@@ -55,7 +58,8 @@ class LoginViewModel @Inject constructor(
                 sendSingleEvent(
                     State.Error(
                         FormatLoginError(
-                            commonError = it
+                            commonError = it,
+                            isAllowResetPassword = ++loginFailCount >= 3
                         )
                     )
                 )
@@ -66,5 +70,6 @@ class LoginViewModel @Inject constructor(
 internal data class FormatLoginError(
     val emailError: String? = null,
     val passwordError: String? = null,
-    val commonError: String? = null
+    val commonError: String? = null,
+    val isAllowResetPassword: Boolean = false
 ) : ErrorDataState

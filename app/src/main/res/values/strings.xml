@@ -15,4 +15,6 @@
     <string name="go_to_login">Go to login</string>
     <string name="mapbox_access_token" translatable="false" tools:ignore="UnusedResources">pk.eyJ1Ijoia2Fpem0iLCJhIjoiY20zMWt3bnpjMHdpYzJpczg3NnQ1b3g2MCJ9.Gg46woKIzLLgGjqaRrTBpg</string>
     <string name="back">Back</string>
+    <string name="can_t_login_reset_password">Can\'t login?  <u>Reset password</u></string>
+    <string name="change_profile_fail">CHANGE PROFILE FAIL</string>
 </resources>

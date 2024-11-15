@@ -127,6 +127,7 @@ class ProfileFragment: BaseFragment<FragmentProfileBinding>() {
         }
         scope.launch {
             viewModel.singleEvent.collect { state ->
+                binding.profileErrorCommon.hasVisible = state is State.Error
                 when (state) {
                     is State.Error -> {
                         loadingVisible(false)

@@ -137,6 +137,16 @@
         </FrameLayout>
 
         <TextView
+            android:id="@+id/login_go_reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/can_t_login_reset_password"
+            android:textColor="@color/black"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
             android:id="@+id/login_go_register"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

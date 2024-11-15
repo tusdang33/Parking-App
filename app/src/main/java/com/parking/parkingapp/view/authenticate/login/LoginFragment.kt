@@ -15,6 +15,8 @@ import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.databinding.FragmentLoginBinding
 import com.parking.parkingapp.view.BaseFragment
 import com.parking.parkingapp.view.MainActivity
+import com.parking.parkingapp.view.authenticate.reset_password.ResetPasswordBottomSheet
+import com.parking.parkingapp.view.profile.ChangeProfileSuccessDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -30,6 +32,12 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
     }
 
     override fun initActions() {
+        binding.loginGoReset.setOnClickListener {
+            ResetPasswordBottomSheet().apply {
+                onSuccess = { ChangeProfileSuccessDialog().shows(parentFragmentManager) }
+            }.shows(parentFragmentManager)
+        }
+
         binding.loginBtn.setOnClickListener {
             viewModel.login(
                 binding.loginEdtAccount.text.toString(),
@@ -90,18 +98,12 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
     }
 
     private fun loadingVisible(isLoading: Boolean) {
-        if (isLoading) {
-            binding.loginLoading.visibility = VISIBLE
-            binding.loginBtn.visibility = View.INVISIBLE
-        } else {
-            binding.loginLoading.visibility = View.INVISIBLE
-            binding.loginBtn.visibility = VISIBLE
-        }
-
+        binding.loginLoading.hasVisible = isLoading
+        binding.loginBtn.hasVisible = !isLoading
     }
 
     private fun handleLoginError(loginError: FormatLoginError) {
-        val (emailError, passwordError, commonError) = loginError
+        val (emailError, passwordError, commonError, isAllowResetPassword) = loginError
         binding.loginErrorEmail.apply {
             hasVisible = emailError != null
             text = emailError
@@ -116,13 +118,15 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
             hasVisible = commonError != null
             text = commonError
         }
+
+        binding.loginGoReset.hasVisible = isAllowResetPassword
     }
 
     private fun navigateToHomeScreen() {
         val navOption = NavOptions.Builder()
             .setPopUpTo(R.id.loginFragment, true)
             .build()
-        findNavController().navigate(R.id.action_loginFragment_to_homeFragment, null, navOption)
+        findNavController().navigate(R.id.action_loginFragment_to_mapboxFragment, null, navOption)
     }
 
     override fun inflateBinding(
