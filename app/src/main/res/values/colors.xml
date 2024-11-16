@@ -15,4 +15,5 @@
     <color name="stroke">#D3D3D3</color>
     <color name="box_fill">#EDEDED</color>
     <color name="gray_trans">#59000000</color>
+    <color name="colorTransparent">#00FF0000</color>
 </resources>

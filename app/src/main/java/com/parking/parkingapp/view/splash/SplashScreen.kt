@@ -12,6 +12,7 @@ import com.parking.parkingapp.R
 import com.parking.parkingapp.common.State
 import com.parking.parkingapp.databinding.FragmentSplashBinding
 import com.parking.parkingapp.view.BaseFragment
+import com.parking.parkingapp.view.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,7 +23,10 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
     private val viewModel: SplashViewModel by viewModels()
 
     override fun initViews() {
-        //suppress
+        (activity as? MainActivity)?.apply {
+            isShowHeader(false)
+            isFirstTimeLogin = true
+        }
     }
 
     override fun initActions() {
@@ -49,7 +53,7 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
                         // suppress
                     }
 
-                    State.Success -> navigateToNextScreen(true)
+                    is State.Success -> navigateToNextScreen(true)
                 }
             }
         }
@@ -60,7 +64,7 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
             .setPopUpTo(R.id.splashFragment, true)
             .build()
         if (isLogged) {
-            findNavController().navigate(R.id.action_splashFragment_to_homeFragment, null, navOption)
+            findNavController().navigate(R.id.action_splashFragment_to_mapboxFragment, null, navOption)
         } else {
             findNavController().navigate(R.id.action_splashFragment_to_loginFragment,null, navOption)
 

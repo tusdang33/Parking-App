@@ -21,7 +21,7 @@ class SplashViewModel @Inject constructor(
             authRepository.getCurrentUser<FirebaseUser>()
                 .success {
                     if (it != null) {
-                        sendSingleEvent(State.Success)
+                        sendSingleEvent(State.Success())
                     } else {
                         sendSingleEvent(State.Error())
                     }

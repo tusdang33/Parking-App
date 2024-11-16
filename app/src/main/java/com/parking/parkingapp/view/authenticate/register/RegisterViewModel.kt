@@ -2,6 +2,7 @@ package com.parking.parkingapp.view.authenticate.login
 
 import androidx.lifecycle.viewModelScope
 import com.parking.parkingapp.common.BaseViewModel
+import com.parking.parkingapp.common.ErrorDataState
 import com.parking.parkingapp.common.State
 import com.parking.parkingapp.common.fail
 import com.parking.parkingapp.common.success
@@ -43,7 +44,15 @@ class RegisterViewModel @Inject constructor(
         ).any { !it.successful }
 
         if (hasError) {
-            sendSingleEvent(State.Error())
+            sendSingleEvent(
+                State.Error(
+                    FormatRegisterError(
+                        emailError = emailValidateResult.errorMessage,
+                        passwordError = passwordValidateResult.errorMessage,
+                        retypePasswordError = retypePasswordValidateResult.errorMessage,
+                    )
+                )
+            )
             return@launch
         }
 
@@ -52,10 +61,23 @@ class RegisterViewModel @Inject constructor(
             password
         )
             .success {
-                sendSingleEvent(State.Success)
+                sendSingleEvent(State.Success())
             }
             .fail {
-                sendSingleEvent(State.Error(it))
+                sendSingleEvent(
+                    State.Error(
+                        FormatRegisterError(
+                            commonError = it
+                        )
+                    )
+                )
             }
     }
 }
+
+internal data class FormatRegisterError(
+    val emailError: String? = null,
+    val passwordError: String? = null,
+    val retypePasswordError: String? = null,
+    val commonError: String? = null
+) : ErrorDataState
