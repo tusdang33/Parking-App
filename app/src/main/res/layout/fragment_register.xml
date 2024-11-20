@@ -59,6 +59,15 @@
             tools:ignore="LabelFor" />
 
         <TextView
+            android:id="@+id/register_error_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wrong"
+            android:textColor="@color/red"
+            android:translationY="-10dp"
+            android:visibility="gone" />
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/password"
@@ -94,6 +103,15 @@
                 app:layout_constraintTop_toTopOf="@id/register_edt_password"
                 tools:ignore="ContentDescription" />
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/register_error_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wrong"
+            android:textColor="@color/red"
+            android:translationY="-10dp"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -133,7 +151,16 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView
-            android:id="@+id/register_text_error"
+            android:id="@+id/register_error_retype_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wrong"
+            android:textColor="@color/red"
+            android:translationY="-10dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/register_error_common"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

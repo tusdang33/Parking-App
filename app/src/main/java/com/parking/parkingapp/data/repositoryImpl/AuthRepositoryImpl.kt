@@ -97,4 +97,13 @@ class AuthRepositoryImpl @Inject constructor(
             Resource.Fail(errorMessage = e.message)
         }
     }
+
+    override suspend fun resetPassword(email: String): Resource<Unit> {
+        return try {
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Fail(errorMessage = e.message)
+        }
+    }
 }

@@ -26,6 +26,8 @@ api-logger = "4.9.3"
 mapbox = "11.7.1"
 mapbox-autocomplete = "2.5.0"
 mapbox-navigation = "3.5.0-rc.1"
+circle-image = "3.1.0"
+glide = "4.16.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -56,6 +58,8 @@ mapbox = { group = "com.mapbox.maps", name = "android", version.ref = "mapbox" }
 mapbox-navigation = { group = "com.mapbox.navigationcore", name = "navigation", version.ref = "mapbox-navigation" }
 mapbox-map = { group = "com.mapbox.navigationcore", name = "ui-maps", version.ref = "mapbox-navigation" }
 mapbox-autocomplete = { group = "com.mapbox.search", name = "place-autocomplete", version.ref = "mapbox-autocomplete" }
+circle-imageview = { group = "de.hdodenhof", name = "circleimageview", version.ref = "circle-image" }
+image-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

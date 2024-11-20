@@ -1,23 +1,22 @@
 package com.parking.parkingapp.view.authenticate.login
 
-import android.os.Bundle
-import android.text.InputType
-import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.parking.parkingapp.R
 import com.parking.parkingapp.common.State
+import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.databinding.FragmentLoginBinding
 import com.parking.parkingapp.view.BaseFragment
+import com.parking.parkingapp.view.MainActivity
+import com.parking.parkingapp.view.authenticate.reset_password.ResetPasswordBottomSheet
+import com.parking.parkingapp.view.profile.ChangeProfileSuccessDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -27,10 +26,18 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
     private var isShowingPassword = false
 
     override fun initViews() {
-        //suppress
+        (activity as? MainActivity)?.apply {
+            isShowHeader(false)
+        }
     }
 
     override fun initActions() {
+        binding.loginGoReset.setOnClickListener {
+            ResetPasswordBottomSheet().apply {
+                onSuccess = { ChangeProfileSuccessDialog().shows(parentFragmentManager) }
+            }.shows(parentFragmentManager)
+        }
+
         binding.loginBtn.setOnClickListener {
             viewModel.login(
                 binding.loginEdtAccount.text.toString(),
@@ -42,19 +49,20 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
             findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
         }
 
-        binding.loginEyeButton.setOnClickListener {
-            with(it as ImageView) {
+        binding.loginEyeButton.setOnClickListener { eye ->
+            with(binding.loginEdtPassword) {
                 if (isShowingPassword) {
-                    setImageResource(R.drawable.eye_on_fill)
-                    binding.loginEdtPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                    binding.loginEdtPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+                    (eye as ImageView).setImageResource(com.parking.parkingapp.R.drawable.eye_on_fill)
+                    inputType =
+                        android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                    transformationMethod = android.text.method.PasswordTransformationMethod.getInstance()
                 } else {
-                    setImageResource(R.drawable.eye_off_fill)
-                    binding.loginEdtPassword.inputType = InputType.TYPE_CLASS_TEXT
-                    binding.loginEdtPassword.transformationMethod = null
+                    (eye as ImageView).setImageResource(com.parking.parkingapp.R.drawable.eye_off_fill)
+                    inputType = android.text.InputType.TYPE_CLASS_TEXT
+                    transformationMethod = null
                 }
                 isShowingPassword = !isShowingPassword
-                binding.loginEdtPassword.setSelection(binding.loginEdtPassword.text.length)
+                setSelection(this.text.length)
             }
         }
     }
@@ -68,7 +76,7 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
             viewModel.singleEvent.collect { state ->
                 when (state) {
                     is State.Error -> {
-                        handleLoginError(true)
+                        handleLoginError(state.error as FormatLoginError)
                         loadingVisible(false)
                     }
                     State.Idle -> {
@@ -79,9 +87,9 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
                         loadingVisible(true)
                     }
 
-                    State.Success -> {
+                    is State.Success -> {
                         navigateToHomeScreen()
-                        handleLoginError(false)
+                        handleLoginError(FormatLoginError())
                         loadingVisible(false)
                     }
                 }
@@ -90,25 +98,35 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
     }
 
     private fun loadingVisible(isLoading: Boolean) {
-        if (isLoading) {
-            binding.loginLoading.visibility = VISIBLE
-            binding.loginBtn.visibility = View.INVISIBLE
-        } else {
-            binding.loginLoading.visibility = View.INVISIBLE
-            binding.loginBtn.visibility = VISIBLE
-        }
-
+        binding.loginLoading.hasVisible = isLoading
+        binding.loginBtn.hasVisible = !isLoading
     }
 
-    private fun handleLoginError(isVisible: Boolean) {
-        binding.loginTextError.visibility = if (isVisible) VISIBLE else GONE
+    private fun handleLoginError(loginError: FormatLoginError) {
+        val (emailError, passwordError, commonError, isAllowResetPassword) = loginError
+        binding.loginErrorEmail.apply {
+            hasVisible = emailError != null
+            text = emailError
+        }
+
+        binding.loginErrorPassword.apply {
+            hasVisible = passwordError != null
+            text = passwordError
+        }
+
+        binding.loginErrorCommon.apply {
+            hasVisible = commonError != null
+            text = commonError
+        }
+
+        binding.loginGoReset.hasVisible = isAllowResetPassword
     }
 
     private fun navigateToHomeScreen() {
         val navOption = NavOptions.Builder()
             .setPopUpTo(R.id.loginFragment, true)
             .build()
-        findNavController().navigate(R.id.action_loginFragment_to_homeFragment, null, navOption)
+        findNavController().navigate(R.id.action_loginFragment_to_mapboxFragment, null, navOption)
     }
 
     override fun inflateBinding(

@@ -22,4 +22,9 @@ interface AuthRepository {
         email: String?,
         image: String?
     ): Resource<Unit>
+
+
+    suspend fun resetPassword(
+        email: String
+    ): Resource<Unit>
 }
