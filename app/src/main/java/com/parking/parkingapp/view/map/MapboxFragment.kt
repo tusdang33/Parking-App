@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -15,12 +16,17 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.google.gson.Gson
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.core.constants.Constants
@@ -42,6 +48,9 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.annotation.AnnotationConfig
 import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.OnPointAnnotationClickListener
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.attribution.attribution
@@ -59,12 +68,15 @@ import com.mapbox.navigation.core.lifecycle.MapboxNavigationObserver
 import com.mapbox.navigation.core.lifecycle.requireMapboxNavigation
 import com.parking.parkingapp.R
 import com.parking.parkingapp.common.BDX
+import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.common.hideKeyboard
+import com.parking.parkingapp.data.model.ParkModel
 import com.parking.parkingapp.databinding.FragmentMapboxBinding
 import com.parking.parkingapp.view.BaseFragment
 import com.parking.parkingapp.view.MainActivity
 import com.parking.parkingapp.view.map.ui.PDivierItemDecoration
 import com.parking.parkingapp.view.map.ui.ParkingMarker
+import com.parking.parkingapp.view.park.ParkDetailFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -91,6 +103,8 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
 
     private var currentLocation: Point? = null
     private var markedLocation: Point? = null
+    private var currentShowingPark: ParkModel? = null
+    private var pointAnnotationManager: PointAnnotationManager? = null
 
     override fun inflateBinding(
         inflater: LayoutInflater,
@@ -119,11 +133,13 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         (activity as? MainActivity)?.apply {
             isShowHeader(false)
         }
+
         binding.mapView.apply {
             compass.enabled = false
             logo.enabled = false
             attribution.enabled = false
             scalebar.position = Gravity.BOTTOM or Gravity.START
+            scalebar.isMetricUnits = true
             location.apply {
                 locationPuck = LocationPuck2D(
                     topImage = ImageHolder.Companion.from(R.drawable.location_puck),
@@ -145,6 +161,9 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                     currentLocation = position
                 }
             }
+            pointAnnotationManager = annotations.createPointAnnotationManager(
+                AnnotationConfig()
+            )
         }
         binding.mapView.mapboxMap.apply {
             loadStyle(
@@ -155,6 +174,9 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
             ) {
                 dumbMarker()
                 updateCamera(currentLocation ?: DEFAULT_LOCATION)
+                subscribeCameraChanged {
+                    viewModel.getParkInRange(cameraState.center)
+                }
             }
         }
 
@@ -270,6 +292,68 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                 //suppress
             }
         })
+
+        pointAnnotationManager?.apply {
+            addClickListener(
+                OnPointAnnotationClickListener { pointAnnotation ->
+                    handleOnMarkerClick(pointAnnotation)
+                    false
+                }
+            )
+        }
+
+        binding.parkInfoContainer.setOnClickListener {
+            parentFragment?.setFragmentResultListener(MapboxFragment::class.java.name) { _, bundle ->
+                if (bundle.getBoolean(ParkDetailFragment::class.java.name)) {
+                    if (currentLocation == null || currentShowingPark == null) return@setFragmentResultListener
+                    direction(
+                        currentLocation!!,
+                        Point.fromLngLat(currentShowingPark!!.long, currentShowingPark!!.lat)
+                    )
+                }
+            }
+            (activity as MainActivity).mainNavController()
+                .navigate(R.id.parkDetailFragment, Bundle().apply {
+                    putParcelable(ParkModel::class.java.name, currentShowingPark)
+                    putString(
+                        ParkModel::class.java.name + "distance",
+                        binding.parkDistance.text.toString()
+                    )
+                })
+        }
+    }
+
+    private fun handleOnMarkerClick(pointAnnotation: PointAnnotation) {
+        val parkModel = runCatching {
+            Gson().fromJson(pointAnnotation.getData(), ParkModel::class.java)
+        }.getOrNull()
+        if (currentLocation == null || parkModel == null) return
+        currentShowingPark = parkModel
+        val animation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
+        getOnRoadDistance(
+            currentLocation!!,
+            Point.fromLngLat(parkModel.long, parkModel.lat)
+        ) { distance ->
+            parkModel.let {
+                Glide
+                    .with(requireContext())
+                    .load(it.image)
+                    .centerCrop()
+                    .placeholder(R.drawable.man)
+                    .into(binding.parkImage)
+                binding.parkName.text = it.name
+                binding.parkAddress.text = it.address
+                binding.parkPrice.text = formatCurrency(it.pricePerHour)
+                binding.parkDistance.text = getString(
+                    R.string.distance_meter,
+                    distance.toInt().toString()
+                )
+            }
+            binding.parkInfoContainer.apply {
+                hasVisible = true
+                startAnimation(animation)
+            }
+        }
     }
 
     override fun intiData() {
@@ -283,6 +367,19 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                 transformRcv()
             }
         }
+        scope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.parkInRange.collect { listPark ->
+                    pointAnnotationManager?.deleteAll()
+                    listPark.forEach {
+                        addAnnotationToMap(
+                            point = Point.fromLngLat(it.long, it.lat),
+                            parkModel = it
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun direction(
@@ -291,7 +388,7 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
     ) {
         val routeOptions =
             RouteOptions.builder()
-                .applyDefaultNavigationOptions(DirectionsCriteria.PROFILE_CYCLING)
+                .applyDefaultNavigationOptions(DirectionsCriteria.PROFILE_DRIVING)
                 .coordinatesList(listOf(start, end))
                 .build()
 
@@ -318,6 +415,41 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                     binding.mapView.mapboxMap,
                     routes.firstOrNull()?.directionsRoute?.geometry() ?: ""
                 )
+            }
+        })
+    }
+
+    private fun getOnRoadDistance(
+        start: Point,
+        end: Point,
+        onDistance: (Double) -> Unit
+    ) {
+        val routeOptions =
+            RouteOptions.builder()
+                .applyDefaultNavigationOptions(DirectionsCriteria.PROFILE_DRIVING)
+                .coordinatesList(listOf(start, end))
+                .build()
+
+        mapboxNavigation.requestRoutes(routeOptions, object: NavigationRouterCallback {
+            override fun onCanceled(
+                routeOptions: RouteOptions,
+                routerOrigin: String
+            ) {
+                onDistance.invoke(start.distanceTo(end))
+            }
+
+            override fun onFailure(
+                reasons: List<RouterFailure>,
+                routeOptions: RouteOptions
+            ) {
+                onDistance.invoke(start.distanceTo(end))
+            }
+
+            override fun onRoutesReady(
+                routes: List<NavigationRoute>,
+                routerOrigin: String
+            ) {
+                onDistance.invoke(routes.firstOrNull()?.directionsRoute?.distance() ?: 0.0)
             }
         })
     }
@@ -371,7 +503,9 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
 
     private fun addAnnotationToMap(
         point: Point,
-        markerView: Bitmap? = null
+        markerView: Bitmap? = null,
+        clearOldMarker: Boolean = false,
+        parkModel: ParkModel? = null
     ) {
         val markerIcon = markerView ?: run {
             val redMarker = BitmapFactory.decodeResource(
@@ -385,14 +519,14 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                 true
             )
         }
-        val pointAnnotationManager = binding.mapView.annotations.createPointAnnotationManager(
-            AnnotationConfig()
-        )
-//        pointAnnotationManager.deleteAll()
+        Log.e("tudm", "addAnnotationToMap:$markerView $pointAnnotationManager ")
+        if (clearOldMarker) pointAnnotationManager?.deleteAll()
         val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
             .withPoint(point)
             .withIconImage(markerIcon)
-        pointAnnotationManager.create(pointAnnotationOptions)
+
+        parkModel?.let { pointAnnotationOptions.withData(Gson().toJsonTree(parkModel)) }
+        pointAnnotationManager?.create(pointAnnotationOptions)
     }
 
     private fun updateCamera(

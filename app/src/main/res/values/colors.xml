@@ -16,4 +16,6 @@
     <color name="box_fill">#EDEDED</color>
     <color name="gray_trans">#59000000</color>
     <color name="colorTransparent">#00FF0000</color>
+    <color name="blue_gray">#E8EEF3</color>
+    <color name="sub_yellow">#EFDE6E</color>
 </resources>

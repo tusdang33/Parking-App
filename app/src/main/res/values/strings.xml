@@ -17,4 +17,17 @@
     <string name="back">Back</string>
     <string name="can_t_login_reset_password">Can\'t login?  <u>Reset password</u></string>
     <string name="change_profile_fail">CHANGE PROFILE FAIL</string>
+    <string name="distance_meter">%sm</string>
+    <string name="open_time">Open Now - %s</string>
+    <string name="closed_time">Closed - %s</string>
+    <string name="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</string>
+    <string name="active_time">GIỜ HOẠT ĐỘNG</string>
+    <string name="park_detail">Chi tiết</string>
+    <string name="park_address">ĐỊA CHỈ</string>
+    <string name="open_time_title">Giờ đến</string>
+    <string name="close_time_title">Giờ đi</string>
+    <string name="pick_time">Chọn giờ</string>
+    <string name="direction">Direction</string>
+    <string name="total_time">%s Giờ</string>
+    <string name="start_day">Ngày thuê</string>
 </resources>

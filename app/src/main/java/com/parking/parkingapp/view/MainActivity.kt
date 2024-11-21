@@ -73,9 +73,17 @@ class MainActivity: BaseActivity<ActivityMainBinding>() {
 
     fun mainNavController() = findNavController(R.id.nav_host_fragment)
 
-    fun setOnHeaderBack(onBack: (() -> Unit)? = null) {
+    fun visibleMapScreen(isVisible: Boolean) {
+        binding.mapNavFragment.hasVisible = isVisible
+    }
+
+    fun setOnHeaderBack(
+        onBack: (() -> Unit)? = null,
+        backListener: (() -> Unit)? = null
+    ) {
         binding.headerBack.setOnClickListener {
-            onBack?.invoke() ?: findNavController(R.id.nav_host_fragment).popBackStack()
+            onBack?.invoke() ?: mainNavController().popBackStack()
+            backListener?.invoke()
         }
     }
 

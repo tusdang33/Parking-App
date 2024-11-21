@@ -1,18 +1,20 @@
 package com.parking.parkingapp.di
 
-import com.google.android.libraries.places.api.model.AutocompleteSessionToken
-import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.parking.parkingapp.common.APIConst
+import com.parking.parkingapp.common.CollectionRef
+import com.parking.parkingapp.common.FireCollectionRef
 import com.parking.parkingapp.data.repository.AuthRepository
 import com.parking.parkingapp.data.repository.DirectionsApi
 import com.parking.parkingapp.data.repository.MapRepository
+import com.parking.parkingapp.data.repository.ParkRepository
 import com.parking.parkingapp.data.repositoryImpl.AuthRepositoryImpl
 import com.parking.parkingapp.data.repositoryImpl.MapRepositoryImpl
+import com.parking.parkingapp.data.repositoryImpl.ParkRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -64,4 +66,16 @@ object NetWorkModule {
             .build()
             .create(DirectionsApi::class.java)
     }
+
+    @Singleton
+    @Provides
+    fun provideParkRepository(
+        parkRepositoryImpl: ParkRepositoryImpl
+    ): ParkRepository = parkRepositoryImpl
+
+    @Singleton
+    @Provides
+    @FireCollectionRef(CollectionRef.PARK)
+    fun provideParkCollection(): CollectionReference =
+        Firebase.firestore.collection(CollectionRef.PARK.value)
 }
