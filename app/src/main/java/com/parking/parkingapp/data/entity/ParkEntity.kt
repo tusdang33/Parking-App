@@ -2,7 +2,7 @@ package com.parking.parkingapp.data.entity
 
 import java.io.Serializable
 
-data class Park(
+data class ParkEntity(
     val id: String = "",
     val name: String = "",
     val address: String = "",

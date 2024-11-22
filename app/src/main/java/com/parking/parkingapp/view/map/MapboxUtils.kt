@@ -31,9 +31,14 @@ fun StyleExtensionImpl.Builder.lineLayerPreset(
 fun Point.distanceTo(destination: Point): Double =
     TurfMeasurement.distance(this, destination, "meters")
 
-fun formatCurrency(amount: Int): String {
+fun formatCurrencyPerHour(amount: Int): String {
     val formatter = DecimalFormat("#,###")
     return "${formatter.format(amount)}đ/h"
+}
+
+fun formatCurrency(amount: Double): String {
+    val formatter = DecimalFormat("#,###")
+    return "${formatter.format(amount)}đ"
 }
 
 fun formatTime(hour: Double): String {

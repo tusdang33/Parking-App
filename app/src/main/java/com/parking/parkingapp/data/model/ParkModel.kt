@@ -1,9 +1,8 @@
 package com.parking.parkingapp.data.model
 
 import android.os.Parcelable
-import com.parking.parkingapp.data.entity.Park
+import com.parking.parkingapp.data.entity.ParkEntity
 import kotlinx.parcelize.Parcelize
-import java.io.Serializable
 
 @Parcelize
 data class ParkModel(
@@ -20,8 +19,24 @@ data class ParkModel(
     val closeTime: Double
 ): Parcelable
 
-fun Park.toParkModel(): ParkModel {
+fun ParkEntity.toParkModel(): ParkModel {
     return ParkModel(
+        this.id,
+        this.name,
+        this.address,
+        this.image,
+        this.maxSlot,
+        this.currentSlot,
+        this.lat,
+        this.long,
+        this.pricePerHour,
+        this.openTime,
+        this.closeTime,
+    )
+}
+
+fun ParkModel.toParkEntity(): ParkEntity {
+    return ParkEntity(
         this.id,
         this.name,
         this.address,

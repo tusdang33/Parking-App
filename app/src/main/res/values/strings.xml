@@ -30,4 +30,8 @@
     <string name="direction">Direction</string>
     <string name="total_time">%s Giờ</string>
     <string name="start_day">Ngày thuê</string>
+    <string name="total_time_default">0 Giờ</string>
+    <string name="detail_checkout">Thanh toán %s</string>
+    <string name="detail_checkout_default">Thanh toán 0Đ</string>
+    <string name="my_park_time">%s - %s</string>
 </resources>

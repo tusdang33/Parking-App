@@ -102,7 +102,7 @@
                 android:id="@+id/park_image"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:src="@color/red"
+                android:src="@drawable/parking_placeholder"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -110,6 +110,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
+            android:id="@+id/park_info_divider"
             android:layout_width="match_parent"
             android:layout_height="0.5dp"
             android:background="@color/gray"
@@ -124,7 +125,7 @@
             android:padding="12dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/park_info_container">
+            app:layout_constraintTop_toBottomOf="@id/park_info_divider">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -207,7 +208,6 @@
             app:layout_constraintTop_toBottomOf="@id/park_detail_container">
 
             <LinearLayout
-                android:id="@+id/park_time_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -271,11 +271,12 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <LinearLayout
-                        android:id="@+id/detail_pick_start_time"
+                        android:id="@+id/detail_pick_start_date"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -288,13 +289,13 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/open_time_title"
+                            android:text="Ngày đến"
                             android:textColor="@color/black"
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/picked_start_time"
+                            android:id="@+id/picked_start_date"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/pick_time" />
@@ -302,7 +303,7 @@
 
 
                     <LinearLayout
-                        android:id="@+id/detail_pick_end_time"
+                        android:id="@+id/detail_pick_end_date"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -321,7 +322,7 @@
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/picked_end_time"
+                            android:id="@+id/picked_end_date"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/pick_time" />
@@ -330,16 +331,24 @@
             </LinearLayout>
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:layout_gravity="center"
-                android:background="@color/gray" />
-
-            <View
                 android:layout_width="0.5dp"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:background="@color/gray" />
+
+            <TextView
+                android:id="@+id/total_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/rounded_shape"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:text="@string/total_time_default"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
         </FrameLayout>
 
         <FrameLayout
@@ -362,11 +371,11 @@
                 android:indeterminateTint="@color/black" />
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/login_btn"
+                android:id="@+id/checkout_button"
                 style="@style/BlackFilledButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Thanh Toan 500.000đ" />
+                android:text="@string/detail_checkout_default" />
         </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

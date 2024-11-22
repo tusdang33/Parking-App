@@ -7,5 +7,8 @@ import javax.inject.Qualifier
 annotation class FireCollectionRef(val collectionRef: CollectionRef)
 
 enum class CollectionRef(val value: String) {
-    PARK("park")
+    PARK("park"),
+    USER("user"),
+    INFO("info"),
+    MY_PARK("my_park"),
 }

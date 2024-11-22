@@ -30,11 +30,6 @@ import javax.inject.Singleton
 object NetWorkModule {
     @Singleton
     @Provides
-    fun provideFireStoreUserCollection(): CollectionReference =
-        Firebase.firestore.collection("user")
-
-    @Singleton
-    @Provides
     fun provideFirebaseAuth(): FirebaseAuth = Firebase.auth
 
     @Singleton
@@ -78,4 +73,10 @@ object NetWorkModule {
     @FireCollectionRef(CollectionRef.PARK)
     fun provideParkCollection(): CollectionReference =
         Firebase.firestore.collection(CollectionRef.PARK.value)
+
+    @Singleton
+    @Provides
+    @FireCollectionRef(CollectionRef.USER)
+    fun provideUserCollection(): CollectionReference =
+        Firebase.firestore.collection(CollectionRef.USER.value)
 }

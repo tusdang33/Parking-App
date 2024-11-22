@@ -339,11 +339,11 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                     .with(requireContext())
                     .load(it.image)
                     .centerCrop()
-                    .placeholder(R.drawable.man)
+                    .placeholder(R.drawable.parking_placeholder)
                     .into(binding.parkImage)
                 binding.parkName.text = it.name
                 binding.parkAddress.text = it.address
-                binding.parkPrice.text = formatCurrency(it.pricePerHour)
+                binding.parkPrice.text = formatCurrencyPerHour(it.pricePerHour)
                 binding.parkDistance.text = getString(
                     R.string.distance_meter,
                     distance.toInt().toString()
