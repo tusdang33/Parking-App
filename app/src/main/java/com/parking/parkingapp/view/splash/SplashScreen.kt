@@ -64,7 +64,7 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
             .setPopUpTo(R.id.splashFragment, true)
             .build()
         if (isLogged) {
-            findNavController().navigate(R.id.action_splashFragment_to_mapboxFragment, null, navOption)
+            findNavController().navigate(R.id.action_splashFragment_to_mapHolderFragment, null, navOption)
         } else {
             findNavController().navigate(R.id.action_splashFragment_to_loginFragment,null, navOption)
 

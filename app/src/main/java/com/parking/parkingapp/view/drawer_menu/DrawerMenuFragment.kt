@@ -53,7 +53,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
 
         binding.drawerMapButton.setOnClickListener {
             (activity as? MainActivity)?.apply {
-                mainNavController().navigate(R.id.mapboxFragment)
+                mainNavController().navigate(R.id.mapHolderFragment)
             }
             close()
         }
@@ -96,7 +96,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
                     is State.Success -> {
                         close() {
                             (activity as? MainActivity)?.apply {
-                                mainNavController().navigate(R.id.action_homeFragment_to_loginFragment)
+                                mainNavController().navigate(R.id.loginFragment)
                             }
                         }
                     }

@@ -47,7 +47,7 @@ class ProfileFragment: BaseFragment<FragmentProfileBinding>() {
     override fun initViews() {
         (activity as? MainActivity)?.apply {
             isShowHeader(true)
-            setOnHeaderBack { findNavController().popBackStack() }
+            setOnHeaderBack()
             setHeaderTitle(applicationContext.getString(R.string.password))
         }
     }

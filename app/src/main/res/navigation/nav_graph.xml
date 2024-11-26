@@ -12,14 +12,10 @@
             android:id="@+id/action_loginFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
         <action
-            android:id="@+id/action_loginFragment_to_homeFragment"
-            app:launchSingleTop="true"
-            app:popUpTo="@id/loginFragment"
+            android:id="@+id/action_loginFragment_to_mapHolderFragment"
             app:popUpToInclusive="true"
-            app:destination="@id/homeFragment" />
-        <action
-            android:id="@+id/action_loginFragment_to_mapboxFragment"
-            app:destination="@id/mapboxFragment" />
+            app:popUpTo="@id/mapHolderFragment"
+            app:destination="@id/mapHolderFragment" />
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
@@ -34,34 +30,12 @@
         android:name="com.parking.parkingapp.view.splash.SplashScreen"
         android:label="SplashScreen" >
         <action
-            android:id="@+id/action_splashFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
-        <action
             android:id="@+id/action_splashFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
         <action
-            android:id="@+id/action_splashFragment_to_mapboxFragment"
-            app:destination="@id/mapboxFragment" />
+            android:id="@+id/action_splashFragment_to_mapHolderFragment"
+            app:destination="@id/mapHolderFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/homeFragment"
-        android:name="com.parking.parkingapp.view.home.HomeFragment"
-        android:label="fragment_home"
-        tools:layout="@layout/fragment_home" >
-        <action
-            android:id="@+id/action_homeFragment_to_loginFragment"
-            app:launchSingleTop="true"
-            app:popUpTo="@id/homeFragment"
-            app:popUpToInclusive="true"
-            app:destination="@id/loginFragment" />
-        <action
-            android:id="@+id/action_homeFragment_to_mapboxFragment"
-            app:destination="@id/mapboxFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/mapboxFragment"
-        android:name="com.parking.parkingapp.view.map.MapboxFragment"
-        android:label="MapboxFragment" />
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.parking.parkingapp.view.profile.ProfileFragment"
@@ -77,4 +51,29 @@
         android:name="com.parking.parkingapp.view.my_parking.MyParkingFragment"
         android:label="fragment_my_parking"
         tools:layout="@layout/fragment_my_parking" />
+    <fragment
+        android:id="@+id/mapHolderFragment"
+        android:name="com.parking.parkingapp.view.map.MapHolderFragment"
+        android:label="fragment_map_holder"
+        tools:layout="@layout/fragment_map_holder" />
+    <fragment
+        android:id="@+id/parkDetailFragment"
+        android:name="com.parking.parkingapp.view.park.ParkDetailFragment"
+        android:label="fragment_park_detail"
+        tools:layout="@layout/fragment_park_detail" >
+        <action
+            android:id="@+id/action_parkDetailFragment_to_parkReservationFragment"
+            app:destination="@id/parkReservationFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/parkReservationFragment"
+        android:name="com.parking.parkingapp.view.park.ParkReservationFragment"
+        android:label="fragment_park_reservation"
+        tools:layout="@layout/fragment_park_reservation" >
+        <action
+            android:id="@+id/action_parkReservationFragment_to_mapHolderFragment"
+            app:popUpToInclusive="true"
+            app:popUpTo="@id/mapHolderFragment"
+            app:destination="@id/mapHolderFragment" />
+    </fragment>
 </navigation>

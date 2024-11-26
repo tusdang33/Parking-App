@@ -126,7 +126,7 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
         val navOption = NavOptions.Builder()
             .setPopUpTo(R.id.loginFragment, true)
             .build()
-        findNavController().navigate(R.id.action_loginFragment_to_mapboxFragment, null, navOption)
+        findNavController().navigate(R.id.action_loginFragment_to_mapHolderFragment, null, navOption)
     }
 
     override fun inflateBinding(

@@ -4,6 +4,8 @@ import androidx.core.net.toUri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.firestore.CollectionReference
+import com.parking.parkingapp.common.CollectionRef
+import com.parking.parkingapp.common.FireCollectionRef
 import com.parking.parkingapp.common.Resource
 import com.parking.parkingapp.data.entity.FireUserEntity
 import com.parking.parkingapp.data.repository.AuthRepository
@@ -11,7 +13,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val fireStoreUserCollection: CollectionReference,
+    @FireCollectionRef(CollectionRef.USER) private val fireStoreUserCollection: CollectionReference,
     private val firebaseAuth: FirebaseAuth,
 ): AuthRepository {
 
@@ -30,7 +32,7 @@ class AuthRepositoryImpl @Inject constructor(
     ): Resource<FireUserEntity> {
         return try {
             val fireUser = firebaseAuth.signInWithEmailAndPassword(email, pass).await().user!!
-            val user = FireUserEntity(fireUser.uid, fireUser.displayName, email, null)
+            val user = FireUserEntity(fireUser.uid, email)
             Resource.Success(user)
         } catch (e: Exception) {
             Resource.Fail(errorMessage = e.message)
@@ -52,9 +54,9 @@ class AuthRepositoryImpl @Inject constructor(
     ): Resource<FireUserEntity> {
         return try {
             val fireUser = firebaseAuth.createUserWithEmailAndPassword(email, pass).await().user!!
-            val user = FireUserEntity(fireUser.uid, "", email, null)
+            val user = FireUserEntity(fireUser.uid, email)
             fireStoreUserCollection.document(fireUser.uid)
-                .collection("info")
+                .collection(CollectionRef.INFO.value)
                 .document(fireUser.uid)
                 .set(user)
                 .await()

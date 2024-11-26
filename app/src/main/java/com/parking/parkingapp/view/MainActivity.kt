@@ -48,10 +48,17 @@ class MainActivity: BaseActivity<ActivityMainBinding>() {
                 }
             }
         })
+
         supportFragmentManager.findFragmentById(R.id.nav_host_fragment)?.childFragmentManager?.let {
             it.addOnBackStackChangedListener {
                 handleOnScreenChange(it.fragments.lastOrNull())
             }
+        }
+        binding.headerMenu.setOnClickListener {
+            ((supportFragmentManager
+                .findFragmentById(R.id.drawer_menu) as? NavHostFragment)
+                ?.childFragmentManager
+                ?.primaryNavigationFragment as? DrawerMenuFragment)?.open()
         }
     }
 
@@ -73,9 +80,17 @@ class MainActivity: BaseActivity<ActivityMainBinding>() {
 
     fun mainNavController() = findNavController(R.id.nav_host_fragment)
 
-    fun setOnHeaderBack(onBack: (() -> Unit)? = null) {
+    fun visibleMapScreen(isVisible: Boolean) {
+        binding.mapNavFragment.hasVisible = isVisible
+    }
+
+    fun setOnHeaderBack(
+        onBack: (() -> Unit)? = null,
+        backListener: (() -> Unit)? = null
+    ) {
         binding.headerBack.setOnClickListener {
-            onBack?.invoke() ?: findNavController(R.id.nav_host_fragment).popBackStack()
+            onBack?.invoke() ?: mainNavController().popBackStack()
+            backListener?.invoke()
         }
     }
 
@@ -85,6 +100,10 @@ class MainActivity: BaseActivity<ActivityMainBinding>() {
 
     fun isShowHeader(isShow: Boolean) {
         binding.header.hasVisible = isShow
+    }
+
+    fun isShowMenu(isShow: Boolean) {
+        binding.headerMenu.hasVisible = isShow
     }
 
 

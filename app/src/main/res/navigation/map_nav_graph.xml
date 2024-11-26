@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/map_nav_graph"
+    app:startDestination="@id/mapboxFragment">
+
+    <fragment
+        android:id="@+id/mapboxFragment"
+        android:name="com.parking.parkingapp.view.map.MapboxFragment"
+        android:label="MapboxFragment" />
+</navigation>

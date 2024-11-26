@@ -1,9 +1,14 @@
 package com.parking.parkingapp.view.map
 
 import androidx.lifecycle.viewModelScope
+import com.mapbox.geojson.Point
 import com.parking.parkingapp.common.BaseViewModel
+import com.parking.parkingapp.common.success
 import com.parking.parkingapp.data.model.AutoCompleteModel
+import com.parking.parkingapp.data.model.ParkModel
+import com.parking.parkingapp.data.model.toAutoCompleteModel
 import com.parking.parkingapp.data.repository.MapRepository
+import com.parking.parkingapp.data.repository.ParkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -15,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val directionRepository: MapRepository,
+    private val parkRepository: ParkRepository,
 ): BaseViewModel() {
     private var debounceJob: Job? = null
 
@@ -22,6 +28,21 @@ class MapViewModel @Inject constructor(
         listOf()
     )
     val searchSuggestion = _searchSuggestion.asStateFlow()
+
+    private val _park = mutableListOf<ParkModel>()
+    private val _parkInRange: MutableStateFlow<List<ParkModel>> = MutableStateFlow(listOf())
+    val parkInRange = _parkInRange.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            parkRepository.getPark().collect { result ->
+                result.success {
+                    _park.clear()
+                    _park.addAll(it?.toList() ?: listOf())
+                }
+            }
+        }
+    }
 
     fun cancelSearch() {
         debounceJob?.cancel()
@@ -34,10 +55,26 @@ class MapViewModel @Inject constructor(
         debounceJob = viewModelScope.launch {
             delay(500)
             directionRepository.getSearchSuggestion(query).collect {
-                if (it != null) {
-                    _searchSuggestion.value = it
-                }
+                _searchSuggestion.value = _park.filter { park ->
+                    park.name.contains(query, true) || park.address.contains(query, true)
+                }.map { park -> park.toAutoCompleteModel() } + (it ?: listOf())
             }
+        }
+    }
+
+    fun getParkInRange(
+        currentCoordinate: Point,
+        distance: Int = 10000
+    ) {
+        debounceJob?.cancel()
+        debounceJob = viewModelScope.launch {
+            delay(1000)
+            _parkInRange.value = _park.filter {
+                val e = currentCoordinate.distanceTo(
+                    Point.fromLngLat(it.long, it.lat)
+                )
+                 e <= distance
+            }.toList()
         }
     }
 }

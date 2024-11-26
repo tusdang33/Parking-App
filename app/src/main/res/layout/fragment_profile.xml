@@ -92,12 +92,13 @@
         android:textSize="16sp" />
 
     <EditText
-        android:enabled="false"
         android:id="@+id/profile_email"
         style="@style/EditTextWithOutline"
+        android:textColor="@color/gray"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:autofillHints=""
+        android:enabled="false"
         android:inputType="textEmailSubject"
         tools:ignore="LabelFor" />
 
