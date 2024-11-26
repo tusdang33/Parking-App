@@ -9,10 +9,10 @@ import com.parking.parkingapp.R
 import com.parking.parkingapp.data.model.MyRentedPark
 import com.parking.parkingapp.databinding.MyParkingItemBinding
 import com.parking.parkingapp.view.map.formatCurrency
-import com.parking.parkingapp.view.map.formatCurrencyPerHour
 
 class MyParkingAdapter : RecyclerView.Adapter<MyParkingAdapter.MyParkingViewHolder>() {
     private val myParkingList = mutableListOf<MyRentedPark>()
+    var onParkClick: ((MyRentedPark) -> Unit)? = null
 
     fun updateData(newList: List<MyRentedPark>) {
         myParkingList.clear()
@@ -22,6 +22,9 @@ class MyParkingAdapter : RecyclerView.Adapter<MyParkingAdapter.MyParkingViewHold
 
     inner class MyParkingViewHolder(val binding: MyParkingItemBinding) : ViewHolder(binding.root) {
         fun bind(myRentedPark: MyRentedPark) {
+            binding.root.setOnClickListener {
+                onParkClick?.invoke(myRentedPark)
+            }
             Glide
                 .with(binding.root.context)
                 .load(myRentedPark.park.image)

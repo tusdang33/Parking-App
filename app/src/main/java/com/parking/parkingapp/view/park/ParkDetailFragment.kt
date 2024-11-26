@@ -63,7 +63,7 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
             binding.parkName.text = it.name
             binding.parkAddress.text = it.address
             binding.detailAddress.text = it.detailAddress
-            binding.parkPrice.text = formatCurrencyPerHour(it.pricePerHour)
+            binding.parkSlot.text = formatCurrencyPerHour(it.pricePerHour)
             binding.parkDistance.text = arguments?.getString(ParkModel::class.java.name + "distance")
             val startTime = formatTime(it.openTime)
             val closeTime = formatTime(it.closeTime)

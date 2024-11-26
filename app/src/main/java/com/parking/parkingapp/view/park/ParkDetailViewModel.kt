@@ -29,7 +29,7 @@ class ParkDetailViewModel @Inject constructor(
         parkModel: ParkModel,
         startTime: String,
         endTime: String,
-        totalPay: Double,
+        totalHour: Double,
         isSubmitInOpenTime: Boolean
     ) =
         viewModelScope.launch {
@@ -43,7 +43,7 @@ class ParkDetailViewModel @Inject constructor(
                             park = parkModel,
                             startTime = startTime,
                             endTime = endTime,
-                            totalPay = (totalPay * parkModel.pricePerHour).toInt(),
+                            totalPay = (totalHour * parkModel.pricePerHour).toInt(),
                             rentedDate = if (isSubmitInOpenTime) LocalDate.now().toString()
                             else LocalDate.now().plusDays(1).toString()
                         )

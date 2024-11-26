@@ -30,9 +30,21 @@
         android:textColor="@color/black"
         android:textStyle="bold"
         android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@id/my_park_status"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
         app:layout_constraintBottom_toTopOf="@id/my_park_address"
         app:layout_constraintStart_toEndOf="@id/my_park_image"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/my_park_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chua checkin"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/my_park_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/my_park_name" />
 
     <TextView
         android:id="@+id/my_park_address"

@@ -50,7 +50,11 @@
         android:id="@+id/myParkingFragment"
         android:name="com.parking.parkingapp.view.my_parking.MyParkingFragment"
         android:label="fragment_my_parking"
-        tools:layout="@layout/fragment_my_parking" />
+        tools:layout="@layout/fragment_my_parking" >
+        <action
+            android:id="@+id/action_myParkingFragment_to_myParkDetailFragment"
+            app:destination="@id/myParkDetailFragment" />
+    </fragment>
     <fragment
         android:id="@+id/mapHolderFragment"
         android:name="com.parking.parkingapp.view.map.MapHolderFragment"
@@ -76,4 +80,8 @@
             app:popUpTo="@id/mapHolderFragment"
             app:destination="@id/mapHolderFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/myParkDetailFragment"
+        android:name="com.parking.parkingapp.view.my_parking.MyParkDetailFragment"
+        android:label="MyParkDetailFragment" />
 </navigation>

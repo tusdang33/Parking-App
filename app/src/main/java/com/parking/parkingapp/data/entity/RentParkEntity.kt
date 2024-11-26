@@ -9,5 +9,6 @@ data class RentParkEntity(
     val startTime: String = "",
     val endTime: String = "",
     val totalPay: Int = 0,
-    val rentedDate: String = ""
+    val rentedDate: String = "",
+    val status: String = ""
 ): Serializable

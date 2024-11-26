@@ -175,3 +175,15 @@ fun createBitmapFromView(
         true
     )
 }
+
+fun Double.convertDecimalTimeToCalendar(): Calendar {
+    val hours = this.toInt()
+    val minutes = ((this - hours) * 60).toInt()
+
+    return Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hours)
+        set(Calendar.MINUTE, minutes)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+}
