@@ -83,7 +83,7 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
                         //suppress
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         loadingVisible(true)
                     }
 

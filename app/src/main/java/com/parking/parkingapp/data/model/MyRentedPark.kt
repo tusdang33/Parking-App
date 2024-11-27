@@ -43,15 +43,15 @@ fun MyRentedPark.toRentParkEntity(): RentParkEntity {
     )
 }
 
-enum class RentStatus {
-    RENTING, CHECKED_IN, RENTED;
+enum class RentStatus(val value: String) {
+    RENTING("renting"), CHECKED_IN("checked-in"), RENTED("rented");
 
     companion object {
         fun String.toRentStatus(): RentStatus {
             return when (this) {
-                RENTING.name -> RENTING
-                CHECKED_IN.name -> CHECKED_IN
-                RENTED.name -> RENTED
+                RENTING.value -> RENTING
+                CHECKED_IN.value -> CHECKED_IN
+                RENTED.value -> RENTED
                 else -> RENTING
             }
         }

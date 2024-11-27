@@ -49,7 +49,7 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
                         // suppress
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         // suppress
                     }
 

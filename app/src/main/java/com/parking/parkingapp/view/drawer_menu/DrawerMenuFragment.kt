@@ -89,7 +89,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
                         //suppress
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         //suppress
                     }
 

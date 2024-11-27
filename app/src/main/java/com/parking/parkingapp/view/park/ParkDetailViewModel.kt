@@ -14,6 +14,7 @@ import com.parking.parkingapp.data.model.ParkModel
 import com.parking.parkingapp.data.repository.AuthRepository
 import com.parking.parkingapp.data.repository.ParkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -33,7 +34,8 @@ class ParkDetailViewModel @Inject constructor(
         isSubmitInOpenTime: Boolean
     ) =
         viewModelScope.launch {
-            sendSingleEvent(State.Loading)
+            sendSingleEvent(State.Loading())
+            delay(200L)
             authRepository.getCurrentUser<FirebaseUser>().success { user ->
                 user?.also {
                     parkRepository.rentPark(

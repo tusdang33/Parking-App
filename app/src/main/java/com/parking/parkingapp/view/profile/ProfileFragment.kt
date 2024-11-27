@@ -137,7 +137,7 @@ class ProfileFragment: BaseFragment<FragmentProfileBinding>() {
                         loadingVisible(false)
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         loadingVisible(true)
                     }
 

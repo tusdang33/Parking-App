@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
 import com.parking.parkingapp.R
 import com.parking.parkingapp.data.model.MyRentedPark
+import com.parking.parkingapp.data.model.RentStatus
 import com.parking.parkingapp.databinding.MyParkingItemBinding
 import com.parking.parkingapp.view.map.formatCurrency
 
@@ -39,6 +40,21 @@ class MyParkingAdapter : RecyclerView.Adapter<MyParkingAdapter.MyParkingViewHold
                 myRentedPark.startTime, myRentedPark.endTime
             )
             binding.myParkDate.text = myRentedPark.rentedDate
+            binding.myParkStatus.apply {
+                text = binding.root.context.getString(
+                    when(myRentedPark.status) {
+                        RentStatus.RENTING -> R.string.not_checkin_yet
+                        RentStatus.CHECKED_IN -> R.string.checked_in
+                        RentStatus.RENTED -> R.string.empty
+                    }
+                )
+                setTextColor(
+                    binding.root.context.getColor(
+                        if (myRentedPark.status != RentStatus.CHECKED_IN) R.color.gray
+                        else R.color.green
+                    )
+                )
+            }
         }
     }
 

@@ -306,7 +306,7 @@
                 android:textStyle="bold" />
         </FrameLayout>
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/my_park_add_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -318,7 +318,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/park_time_container">
-
             <TextView
                 android:id="@+id/my_park_add_time_button"
                 android:layout_width="wrap_content"
@@ -327,11 +326,21 @@
                 android:background="@drawable/rounded_shape"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="3dp"
-                android:text="Thêm giờ"
+                android:text="@string/add_time_button"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
-        </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/park_add_time_loading"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/white"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/park_error"
@@ -346,7 +355,9 @@
             app:layout_constraintTop_toBottomOf="@id/my_park_add_time"
             tools:visibility="visible" />
 
-        <FrameLayout
+        <LinearLayout
+            android:gravity="center"
+            android:orientation="horizontal"
             android:id="@+id/park_button_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -358,20 +369,52 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/park_time_container">
 
-            <ProgressBar
-                android:id="@+id/park_loading"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center"
-                android:indeterminate="true"
-                android:indeterminateTint="@color/black" />
+            <FrameLayout
+                android:id="@+id/checkin_button_container"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="5dp"
+                android:layout_weight="1">
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/checkout_button"
-                style="@style/BlackFilledButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/detail_checkout_default" />
-        </FrameLayout>
+                <ProgressBar
+                    android:id="@+id/park_checkin_loading"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center"
+                    android:indeterminate="true"
+                    android:indeterminateTint="@color/green" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/checkin_button"
+                    style="@style/BlackFilledButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/green"
+                    android:text="@string/start_rent" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="5dp"
+                android:layout_weight="1">
+
+                <ProgressBar
+                    android:id="@+id/park_cancel_loading"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center"
+                    android:indeterminate="true"
+                    android:indeterminateTint="@color/red" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/cancel_button"
+                    style="@style/BlackFilledButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/red"
+                    android:text="@string/cancel_rent" />
+            </FrameLayout>
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

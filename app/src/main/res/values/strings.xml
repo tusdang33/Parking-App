@@ -32,7 +32,7 @@
     <string name="start_day">Ngày thuê</string>
     <string name="total_time_default">0 Giờ</string>
     <string name="detail_checkout">Thanh toán %s</string>
-    <string name="detail_checkout_default">Thanh toán 0Đ</string>
+    <string name="detail_checkout_default">THANH TOÁN 0Đ</string>
     <string name="my_park_time">%s - %s</string>
     <string name="payment_success">Thanh toán thành công</string>
     <string name="rent_success">Bạn đã đặt chỗ thành công</string>
@@ -41,7 +41,14 @@
     <string name="gps_is_off">GPS không được bật</string>
     <string name="start_time_not_valid">Thời gian bắt đầu không hợp lệ</string>
     <string name="end_time_not_valid">Thời gian kết thúc không hợp lệ</string>
-    <string name="add_time_button">Thuê thêm giờ</string>
+    <string name="add_time_button">Thêm giờ</string>
     <string name="add_time_title">THUÊ THÊM GIỜ</string>
     <string name="add_time_default_time">0h</string>
+    <string name="start_rent">Thuê chỗ</string>
+    <string name="stop_rent">Dừng Thuê</string>
+    <string name="cancel_rent">Hủy chỗ</string>
+    <string name="max_add_time_error">Đạt đến số giờ thêm tối đa</string>
+    <string name="not_checkin_yet">Chưa Check-in</string>
+    <string name="checked_in">Đã Check-in</string>
+    <string name="empty"> </string>
 </resources>

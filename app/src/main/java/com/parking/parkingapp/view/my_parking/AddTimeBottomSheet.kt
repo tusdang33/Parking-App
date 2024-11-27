@@ -1,18 +1,19 @@
 package com.parking.parkingapp.view.my_parking
 
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
-import com.mapbox.maps.extension.style.expressions.dsl.generated.max
 import com.parking.parkingapp.R
+import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.databinding.BottomSheetAddTimeBinding
 import com.parking.parkingapp.view.BaseDialog
+import com.parking.parkingapp.view.map.formatCurrency
 
 class AddTimeBottomSheet: BaseDialog<BottomSheetAddTimeBinding>() {
     private var currentTime = 0.0
     var maxTimeCanAdd: Int = 0
+    var parkPrice: Int = 0
     var onAdd: ((Double) -> Unit)? = null
     override fun inflateBinding(
         inflater: LayoutInflater,
@@ -41,19 +42,41 @@ class AddTimeBottomSheet: BaseDialog<BottomSheetAddTimeBinding>() {
 
     override fun initActions() {
         binding.plus.setOnClickListener {
-            Log.e("tudm", "initActions: ${maxTimeCanAdd} ", )
-            currentTime = (currentTime + 1.0).coerceAtMost(maxTimeCanAdd.toDouble())
+            currentTime = (currentTime + 1.0).also {
+                binding.addTimeError.hasVisible = it > maxTimeCanAdd
+            }.coerceAtMost(maxTimeCanAdd.toDouble())
             binding.totalAddHour.text = getString(
                 R.string.total_time,
                 currentTime.toString()
             )
+            handlePriceHour()
         }
 
         binding.minus.setOnClickListener {
+            binding.addTimeError.hasVisible = false
             currentTime = (currentTime - 1.0).coerceAtLeast(0.0)
             binding.totalAddHour.text = getString(
                 R.string.total_time,
                 currentTime.toString()
+            )
+            handlePriceHour()
+        }
+        binding.myParkSaveAdd.setOnClickListener {
+            onAdd?.invoke(currentTime)
+            dismiss()
+        }
+    }
+
+    private fun handlePriceHour() {
+        binding.myParkAddTimeText.apply {
+            text = getString(
+                R.string.detail_checkout,
+                formatCurrency(currentTime * parkPrice)
+            ).uppercase()
+            isEnabled = currentTime != 0.0
+            backgroundTintList = resources.getColorStateList(
+                if (isEnabled) R.color.main_yellow
+                else R.color.gray, null
             )
         }
     }

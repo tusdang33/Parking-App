@@ -70,11 +70,13 @@ import com.mapbox.navigation.core.lifecycle.requireMapboxNavigation
 import com.parking.parkingapp.R
 import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.common.hideKeyboard
+import com.parking.parkingapp.data.model.MyRentedPark
 import com.parking.parkingapp.data.model.ParkModel
 import com.parking.parkingapp.databinding.FragmentMapboxBinding
 import com.parking.parkingapp.view.BaseFragment
 import com.parking.parkingapp.view.MainActivity
 import com.parking.parkingapp.view.map.ui.PDivierItemDecoration
+import com.parking.parkingapp.view.my_parking.MyParkDetailFragment
 import com.parking.parkingapp.view.park.ParkDetailFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
@@ -154,6 +156,21 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         )
         (activity as? MainActivity)?.apply {
             isShowHeader(false)
+        }
+        parentFragment?.setFragmentResultListener(MapboxFragment::class.java.name) { _, bundle ->
+            if (bundle.getBoolean(ParkDetailFragment::class.java.name)) {
+                if (currentLocation == null || currentShowingPark == null) return@setFragmentResultListener
+                direction(
+                    currentLocation!!,
+                    Point.fromLngLat(currentShowingPark!!.long, currentShowingPark!!.lat)
+                )
+            }
+            (bundle.getParcelable(MyParkDetailFragment::class.java.name) as? MyRentedPark)?.let {
+                direction(
+                    currentLocation!!,
+                    Point.fromLngLat(it.park.long, it.park.lat)
+                )
+            }
         }
         binding.mapView.mapboxMap.apply {
             loadStyle(
@@ -311,15 +328,6 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         }
 
         binding.parkInfoContainer.setOnClickListener {
-            parentFragment?.setFragmentResultListener(MapboxFragment::class.java.name) { _, bundle ->
-                if (bundle.getBoolean(ParkDetailFragment::class.java.name)) {
-                    if (currentLocation == null || currentShowingPark == null) return@setFragmentResultListener
-                    direction(
-                        currentLocation!!,
-                        Point.fromLngLat(currentShowingPark!!.long, currentShowingPark!!.lat)
-                    )
-                }
-            }
             (activity as MainActivity).mainNavController()
                 .navigate(R.id.parkDetailFragment, Bundle().apply {
                     putParcelable(ParkModel::class.java.name, currentShowingPark)

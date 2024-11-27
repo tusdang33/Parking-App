@@ -202,7 +202,7 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
     override fun obverseFromViewModel(scope: LifecycleCoroutineScope) {
         scope.launch {
             viewModel.singleEvent.collect { state ->
-                loadingVisible(state == State.Loading)
+                loadingVisible(state is State.Loading)
                 handleError((state as? State.Error)?.error as? RentError)
                 when (state) {
                     is State.Error -> {
@@ -213,7 +213,7 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
                         //suppress
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         //suppress
                     }
 

@@ -54,6 +54,15 @@
             tools:ignore="ContentDescription" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/add_time_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/max_add_time_error"
+        android:textColor="@color/red"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <FrameLayout
         android:id="@+id/my_park_save_add"
         android:layout_width="match_parent"
@@ -63,16 +72,19 @@
         android:padding="5dp">
 
         <TextView
+            android:id="@+id/my_park_add_time_text"
+            android:backgroundTint="@color/gray"
+            android:enabled="false"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="@drawable/rounded_shape"
             android:paddingHorizontal="10dp"
             android:paddingVertical="3dp"
-            android:text="@string/add_time_button"
+            android:text="@string/detail_checkout_default"
             android:textAlignment="center"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
     </FrameLayout>
 </LinearLayout>
