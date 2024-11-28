@@ -32,4 +32,6 @@ interface ParkRepository {
         userId: String,
         myRentedParkId: String
     ): Resource<Unit>
+
+    suspend fun updateOvertimeRent(list: List<MyRentedPark>) : Resource<Unit>
 }

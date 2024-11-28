@@ -9,6 +9,8 @@ import com.parking.parkingapp.data.model.ParkModel
 import com.parking.parkingapp.data.model.toAutoCompleteModel
 import com.parking.parkingapp.data.repository.MapRepository
 import com.parking.parkingapp.data.repository.ParkRepository
+import com.parking.parkingapp.view.map.model.SmartParkModel
+import com.parking.parkingapp.view.map.model.SmartPrioritize
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -23,6 +25,7 @@ class MapViewModel @Inject constructor(
     private val parkRepository: ParkRepository,
 ): BaseViewModel() {
     private var debounceJob: Job? = null
+    private var priority: SmartPrioritize = SmartPrioritize.SLOT
 
     private val _searchSuggestion: MutableStateFlow<List<AutoCompleteModel>> = MutableStateFlow(
         listOf()
@@ -32,6 +35,9 @@ class MapViewModel @Inject constructor(
     private val _park = mutableListOf<ParkModel>()
     private val _parkInRange: MutableStateFlow<List<ParkModel>> = MutableStateFlow(listOf())
     val parkInRange = _parkInRange.asStateFlow()
+
+    private val _smartPark: MutableStateFlow<List<SmartParkModel>> = MutableStateFlow(listOf())
+    val smartPark = _smartPark.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -73,8 +79,64 @@ class MapViewModel @Inject constructor(
                 val e = currentCoordinate.distanceTo(
                     Point.fromLngLat(it.long, it.lat)
                 )
-                 e <= distance
+                e <= distance
             }.toList()
         }
+    }
+
+    fun smartClassifyPark(listSmartPark: List<SmartParkModel>) {
+        _smartPark.value = listSmartPark.map {
+            it.copy(
+                score = calculatePoint(
+                    priority,
+                    it.park.currentSlot,
+                    it.distance,
+                    it.park.pricePerHour,
+                    it.park.maxSlot
+                )
+            )
+        }
+    }
+
+    fun changePriority(prioritize: SmartPrioritize) {
+        priority = prioritize
+        smartClassifyPark(_smartPark.value)
+    }
+
+    private fun calculatePoint(
+        prioritize: SmartPrioritize,
+        emptySlot: Int,
+        distance: Double,
+        price: Int,
+        capacity: Int
+    ): Double {
+        val emptySlotWeight: Double
+        val distanceWeight: Double
+        val priceWeight: Double
+        val capacityWeight: Double
+        when (prioritize) {
+            SmartPrioritize.SLOT -> {
+                emptySlotWeight = 0.4
+                distanceWeight = 0.3
+                priceWeight = 0.2
+                capacityWeight = 0.1
+            }
+
+            SmartPrioritize.PRICE -> {
+                priceWeight = 0.4
+                emptySlotWeight = 0.3
+                distanceWeight = 0.2
+                capacityWeight = 0.1
+            }
+
+            SmartPrioritize.DISTANCE -> {
+                distanceWeight = 0.4
+                emptySlotWeight = 0.3
+                priceWeight = 0.2
+                capacityWeight = 0.1
+            }
+        }
+
+        return emptySlotWeight * emptySlot / capacity + priceWeight * price + distanceWeight * 1 / (distance / 1000) + capacityWeight * capacity
     }
 }

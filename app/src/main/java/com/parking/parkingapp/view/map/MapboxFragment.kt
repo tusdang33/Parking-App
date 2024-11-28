@@ -1,5 +1,6 @@
 package com.parking.parkingapp.view.map
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.graphics.Bitmap
@@ -17,6 +18,8 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -75,7 +78,9 @@ import com.parking.parkingapp.data.model.ParkModel
 import com.parking.parkingapp.databinding.FragmentMapboxBinding
 import com.parking.parkingapp.view.BaseFragment
 import com.parking.parkingapp.view.MainActivity
+import com.parking.parkingapp.view.map.model.SmartParkModel
 import com.parking.parkingapp.view.map.ui.PDivierItemDecoration
+import com.parking.parkingapp.view.map.ui.ParkingMarker
 import com.parking.parkingapp.view.my_parking.MyParkDetailFragment
 import com.parking.parkingapp.view.park.ParkDetailFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -112,6 +117,8 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
     private var currentShowingPark: ParkModel? = null
     private var pointAnnotationManager: PointAnnotationManager? = null
     private var isRouteHasBeenDraw = false
+    private var currentPriorityBlockHeight: Int? = null
+    private var isOpeningClassifyBlock = true
 
     private val gpsRequestLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
@@ -337,6 +344,44 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                     )
                 })
         }
+
+        handlePriorityAction()
+    }
+
+    private fun handlePriorityAction() {
+        binding.mapPriorityClassify.setOnClickListener {
+            if (currentPriorityBlockHeight == null)
+                currentPriorityBlockHeight = binding.mapPriority.measuredHeight
+
+            val animator = if (isOpeningClassifyBlock)
+                ValueAnimator.ofInt(currentPriorityBlockHeight!!, dpToPx(52))
+            else ValueAnimator.ofInt(dpToPx(52), currentPriorityBlockHeight!!)
+            animator.addUpdateListener { animation ->
+                val value = animation.animatedValue as Int
+                val layoutParams = binding.mapPriority.layoutParams
+                layoutParams.height = value
+                binding.mapPriority.layoutParams = layoutParams
+            }
+            animator.duration = 300
+            if (isOpeningClassifyBlock)
+                animator.doOnStart {
+                    for (i in 1 until binding.mapPriority.childCount) {
+                        val childView = binding.mapPriority.getChildAt(i)
+                        Log.e("tudm", "doOnStart:$childView ", )
+                        childView.hasVisible = false
+                    }
+                }
+            if (!isOpeningClassifyBlock)
+                animator.doOnEnd {
+                    for (i in 1 until binding.mapPriority.childCount) {
+                        val childView = binding.mapPriority.getChildAt(i)
+                        Log.e("tudm", "doOnEnd:$childView ", )
+                        childView.hasVisible = true
+                    }
+                }
+            isOpeningClassifyBlock = !isOpeningClassifyBlock
+            animator.start()
+        }
     }
 
     private fun handleOnMarkerClick(pointAnnotation: PointAnnotation) {
@@ -386,12 +431,51 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         scope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.parkInRange.collect { listPark ->
+                    val result = mutableListOf<SmartParkModel>()
+                    listPark.map { parkModel ->
+                        getOnRoadDistance(
+                            currentLocation!!,
+                            Point.fromLngLat(parkModel.long, parkModel.lat)
+                        ) {
+                            result.add(SmartParkModel(parkModel, it, 0.0))
+                            if (result.size == listPark.size) {
+                                viewModel.smartClassifyPark(result)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        scope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.smartPark.collect { listPark ->
                     pointAnnotationManager?.deleteAll()
-                    listPark.forEach {
-                        addAnnotationToMap(
-                            point = Point.fromLngLat(it.long, it.lat),
-                            parkModel = it
-                        )
+                    listPark.divideIntoGroups().forEachIndexed { index, group ->
+                        group.forEach { smartParkModel ->
+                            addAnnotationToMap(
+                                Point.fromLngLat(smartParkModel.park.long, smartParkModel.park.lat),
+                                createBitmapFromView(
+                                    ParkingMarker.Builder(requireContext())
+                                        .setPrice(smartParkModel.park.pricePerHour)
+                                        .setDistance(smartParkModel.distance)
+                                        .setSlot(
+                                            smartParkModel.park.currentSlot,
+                                            smartParkModel.park.maxSlot
+                                        )
+                                        .suggestStatus(
+                                            when (index) {
+                                                0 -> ParkingMarker.Companion.STATUS.EXCELLENT
+                                                1 -> ParkingMarker.Companion.STATUS.GOOD
+                                                2 -> ParkingMarker.Companion.STATUS.NORMAL
+                                                3 -> ParkingMarker.Companion.STATUS.BAD
+                                                else -> ParkingMarker.Companion.STATUS.NORMAL
+                                            }
+                                        )
+                                        .build()
+                                ),
+                                parkModel = smartParkModel.park
+                            )
+                        }
                     }
                 }
             }

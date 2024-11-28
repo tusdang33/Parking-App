@@ -1,5 +1,6 @@
 package com.parking.parkingapp.view.my_parking
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import com.parking.parkingapp.common.BaseViewModel
@@ -18,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,15 +30,24 @@ class MyParkingViewModel @Inject constructor(
     private val _myPark = MutableStateFlow<List<MyRentedPark>>(listOf())
     val myPark = _myPark.asStateFlow()
 
+    @SuppressLint("NewApi")
     fun fetchData() {
         viewModelScope.launch {
             authRepository.getCurrentUser<FirebaseUser>().success { user ->
                 user?.let { fuser ->
                     parkRepository.getMyRentedPark(fuser.uid).collect { result ->
                         result.success { listRentedPark ->
-                            _myPark.value = listRentedPark?.toList()
-                                ?.filter { it.status != RentStatus.RENTED }
-                                ?: listOf()
+                            listRentedPark?.partition {
+                                val delimiterEndTime = it.endTime.split(":")
+                                LocalTime.now() > LocalTime.of(
+                                    delimiterEndTime.first().toInt(),
+                                    delimiterEndTime.last().toInt()
+                                )
+                            }?.let { (invalidList, validList) ->
+                                parkRepository.updateOvertimeRent(invalidList)
+                                _myPark.value = validList.toList()
+                                    .filter { it.status != RentStatus.RENTED }
+                            }
                         }
                     }
                 }

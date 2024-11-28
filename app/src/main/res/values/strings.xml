@@ -51,4 +51,8 @@
     <string name="not_checkin_yet">Chưa Check-in</string>
     <string name="checked_in">Đã Check-in</string>
     <string name="empty"> </string>
+    <string name="priority_capacity">Mật độ tải</string>
+    <string name="priority_distance">Khoảng cách</string>
+    <string name="priority_price">Giá</string>
+    <string name="priority_classify">LỌC</string>
 </resources>

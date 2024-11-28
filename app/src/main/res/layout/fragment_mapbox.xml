@@ -51,6 +51,71 @@
             app:layout_constraintTop_toTopOf="@id/map_search_edt"
             tools:ignore="ContentDescription" />
 
+        <LinearLayout
+            android:id="@+id/map_priority"
+            android:layout_width="52dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/white_rounded_outline"
+            android:divider="@drawable/divider_vertical"
+            android:elevation="2dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingVertical="10dp"
+            android:showDividers="middle"
+            app:layout_constraintEnd_toEndOf="@id/map_menu"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/map_menu"
+            tools:ignore="ContentDescription">
+
+            <TextView
+                android:id="@+id/map_priority_classify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/priority_classify"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/map_priority_smart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:background="@drawable/rounded_shape_8"
+                android:paddingHorizontal="2dp"
+                android:paddingVertical="10dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/smart" />
+
+            <TextView
+                android:id="@+id/map_priority_capacity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/priority_capacity"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/map_priority_distance"
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:text="@string/priority_distance"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/map_priority_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/priority_price"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+        </LinearLayout>
+
         <EditText
             android:id="@+id/map_search_edt"
             style="@style/EditTextWhite"

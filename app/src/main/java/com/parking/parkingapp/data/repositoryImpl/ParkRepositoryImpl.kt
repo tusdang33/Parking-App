@@ -167,4 +167,24 @@ class ParkRepositoryImpl @Inject constructor(
             Resource.Fail(e.message)
         }
     }
+
+    override suspend fun updateOvertimeRent(list: List<MyRentedPark>): Resource<Unit> {
+        return try {
+            Firebase.firestore.runTransaction { transaction ->
+                list.forEach { myRentedPark ->
+                    transaction.update(
+                        userCollectionRef
+                            .document(myRentedPark.userId)
+                            .collection(CollectionRef.MY_PARK.value)
+                            .document(myRentedPark.id),
+                        "status",
+                        RentStatus.RENTED.value
+                    )
+                }
+            }.await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
+        }
+    }
 }

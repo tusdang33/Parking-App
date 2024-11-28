@@ -1,73 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
-
     <ImageView
-        android:id="@+id/marker_outer"
+        android:id="@+id/status_marker"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:src="@drawable/top1_marker"
+        tools:ignore="ContentDescription" />
+
+    <LinearLayout
+        android:id="@+id/slot_container"
+        android:layout_width="wrap_content"
+        android:layout_marginBottom="14dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/current_slot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:text="100"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:translationY="2dp" />
+
+        <View
+            android:id="@+id/slot_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray" />
+
+        <TextView
+            android:id="@+id/max_slot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:lineHeight="18dp"
+            android:text="100"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:translationY="-2dp"
+            tools:ignore="UnusedAttribute" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/distance_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:adjustViewBounds="true"
-        android:background="@drawable/outer_marker"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ContentDescription" />
+        android:layout_marginBottom="14dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
 
-    <ImageView
-        android:id="@+id/marker_middle"
+        <TextView
+            android:id="@+id/distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:text="100"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:translationY="3dp" />
+
+        <TextView
+            android:id="@+id/km"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:lineHeight="18dp"
+            android:text="KM"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:translationY="-3dp"
+            tools:ignore="UnusedAttribute" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/price_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:adjustViewBounds="true"
-        android:background="@drawable/middle_marker"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ContentDescription" />
+        android:layout_marginBottom="14dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
 
-    <ImageView
-        android:id="@+id/marker_inner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="5dp"
-        android:adjustViewBounds="true"
-        android:background="@drawable/inner_marker"
-        android:scaleType="fitCenter"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/marker_middle"
-        tools:ignore="ContentDescription" />
+        <TextView
+            android:id="@+id/price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:text="10k"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:translationY="2dp" />
 
-    <TextView
-        android:id="@+id/marker_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="15"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="@id/marker_inner"
-        app:layout_constraintEnd_toEndOf="@id/marker_inner"
-        app:layout_constraintStart_toStartOf="@id/marker_inner"
-        app:layout_constraintTop_toTopOf="@id/marker_inner" />
+        <TextView
+            android:id="@+id/unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:lineHeight="18dp"
+            android:text="VNĐ"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:translationY="-2dp"
+            tools:ignore="UnusedAttribute" />
+    </LinearLayout>
 
-    <ImageView
-        android:id="@+id/marker_light"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/light_marker"
-        app:layout_constraintBottom_toBottomOf="@id/marker_middle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:ignore="ContentDescription" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
