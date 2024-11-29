@@ -2,6 +2,7 @@ package com.parking.parkingapp.data.model
 
 import android.os.Parcelable
 import com.parking.parkingapp.data.entity.RentParkEntity
+import com.parking.parkingapp.data.model.RentStatus.Companion.toRentStatus
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -12,7 +13,8 @@ data class MyRentedPark(
     val startTime: String,
     val endTime: String,
     val totalPay: Int,
-    val rentedDate: String
+    val rentedDate: String,
+    val status: RentStatus = RentStatus.RENTING
 ): Parcelable
 
 fun RentParkEntity.toMyRentedPark(): MyRentedPark {
@@ -24,6 +26,7 @@ fun RentParkEntity.toMyRentedPark(): MyRentedPark {
         endTime = this.endTime,
         totalPay = this.totalPay,
         rentedDate = this.rentedDate,
+        status = this.status.toRentStatus()
     )
 }
 
@@ -36,5 +39,21 @@ fun MyRentedPark.toRentParkEntity(): RentParkEntity {
         endTime = this.endTime,
         totalPay = this.totalPay,
         rentedDate = this.rentedDate,
+        status = this.status.name
     )
+}
+
+enum class RentStatus(val value: String) {
+    RENTING("renting"), CHECKED_IN("checked-in"), RENTED("rented");
+
+    companion object {
+        fun String.toRentStatus(): RentStatus {
+            return when (this) {
+                RENTING.value -> RENTING
+                CHECKED_IN.value -> CHECKED_IN
+                RENTED.value -> RENTED
+                else -> RENTING
+            }
+        }
+    }
 }

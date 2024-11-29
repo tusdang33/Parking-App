@@ -41,7 +41,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun updateUserData(username: String?) = viewModelScope.launch(NonCancellable) {
-        sendSingleEvent(State.Loading)
+        sendSingleEvent(State.Loading())
         authRepository.updateProfile(
             name = username,
             email = null,

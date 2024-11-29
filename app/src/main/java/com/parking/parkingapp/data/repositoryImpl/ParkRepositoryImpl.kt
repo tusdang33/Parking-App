@@ -1,6 +1,5 @@
 package com.parking.parkingapp.data.repositoryImpl
 
-import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
@@ -13,6 +12,7 @@ import com.parking.parkingapp.data.entity.ParkEntity
 import com.parking.parkingapp.data.entity.RentParkEntity
 import com.parking.parkingapp.data.model.MyRentedPark
 import com.parking.parkingapp.data.model.ParkModel
+import com.parking.parkingapp.data.model.RentStatus
 import com.parking.parkingapp.data.model.toMyRentedPark
 import com.parking.parkingapp.data.model.toParkModel
 import com.parking.parkingapp.data.model.toRentParkEntity
@@ -45,6 +45,17 @@ class ParkRepositoryImpl @Inject constructor(
             }
             awaitClose()
         }
+
+    override suspend fun getParkById(parkId: String): Resource<ParkModel?> {
+        return try {
+            val result = parkCollectionRef
+                .document(parkId)
+                .get().await().toObject(ParkEntity::class.java)?.toParkModel()
+            Resource.Success(result)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
+        }
+    }
 
     override suspend fun rentPark(myRentedPark: MyRentedPark): Resource<MyRentedPark> {
         return try {
@@ -90,6 +101,101 @@ class ParkRepositoryImpl @Inject constructor(
                     SetOptions.merge()
                 )
             }
+        }
+    }
+
+    override suspend fun addRentTime(
+        myParkId: String,
+        userId: String,
+        newTotalPay: Int,
+        newEndTime: String
+    ): Resource<Unit> {
+        return try {
+            userCollectionRef
+                .document(userId)
+                .collection(CollectionRef.MY_PARK.value)
+                .document(myParkId).update(
+                    mapOf(
+                        "endTime" to newEndTime,
+                        "totalPay" to newTotalPay
+                    )
+                ).await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
+        }
+    }
+
+    override suspend fun checkin(
+        userId: String,
+        myRentedParkId: String
+    ): Resource<Unit> {
+        return try {
+            userCollectionRef
+                .document(userId)
+                .collection(CollectionRef.MY_PARK.value)
+                .document(myRentedParkId).update(
+                    mapOf(
+                        "status" to RentStatus.CHECKED_IN.value,
+                    )
+                ).await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
+        }
+    }
+
+    override suspend fun cancel(
+        userId: String,
+        myRentedParkId: String
+    ): Resource<Unit> {
+        return try {
+            userCollectionRef
+                .document(userId)
+                .collection(CollectionRef.MY_PARK.value)
+                .document(myRentedParkId).delete().await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
+        }
+    }
+
+    override suspend fun stopRent(
+        userId: String,
+        myRentedParkId: String
+    ): Resource<Unit> {
+        return try {
+            userCollectionRef
+                .document(userId)
+                .collection(CollectionRef.MY_PARK.value)
+                .document(myRentedParkId).update(
+                    mapOf(
+                        "status" to RentStatus.RENTED.value,
+                    )
+                ).await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
+        }
+    }
+
+    override suspend fun updateOvertimeRent(list: List<MyRentedPark>): Resource<Unit> {
+        return try {
+            Firebase.firestore.runTransaction { transaction ->
+                list.forEach { myRentedPark ->
+                    transaction.update(
+                        userCollectionRef
+                            .document(myRentedPark.userId)
+                            .collection(CollectionRef.MY_PARK.value)
+                            .document(myRentedPark.id),
+                        "status",
+                        RentStatus.RENTED.value
+                    )
+                }
+            }.await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
         }
     }
 }

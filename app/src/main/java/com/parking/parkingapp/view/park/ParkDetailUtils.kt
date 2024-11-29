@@ -2,6 +2,7 @@ package com.parking.parkingapp.view.park
 
 import android.annotation.SuppressLint
 import com.parking.parkingapp.data.model.ParkModel
+import com.parking.parkingapp.view.map.dateFormatter
 import com.parking.parkingapp.view.map.formatTime
 import com.parking.parkingapp.view.map.isCurrentTimeInRange
 import java.time.LocalTime
@@ -16,9 +17,8 @@ fun Calendar.validatePickedTime(
     parkModel: ParkModel,
     isStartTime: Boolean
 ): Calendar? {
-    val formatter = DateTimeFormatter.ofPattern("h:mma", Locale.US)
-    val start = LocalTime.parse(formatTime(parkModel.openTime), formatter)
-    val close = LocalTime.parse(formatTime(parkModel.closeTime), formatter)
+    val start = LocalTime.parse(formatTime(parkModel.openTime), dateFormatter)
+    val close = LocalTime.parse(formatTime(parkModel.closeTime), dateFormatter)
     val pickedLocalTime = LocalTime.of(this.get(Calendar.HOUR_OF_DAY), this.get(Calendar.MINUTE))
     val pickedStartTime = startTime?.let {
         LocalTime.of(

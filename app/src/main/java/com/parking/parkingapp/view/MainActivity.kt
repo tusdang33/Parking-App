@@ -20,7 +20,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity: BaseActivity<ActivityMainBinding>() {
-    var isFirstTimeLogin = false
 
     init {
         lifecycle.addObserver(object: DefaultLifecycleObserver {

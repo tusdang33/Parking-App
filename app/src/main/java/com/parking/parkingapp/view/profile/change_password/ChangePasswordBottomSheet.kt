@@ -50,7 +50,7 @@ class ChangePasswordBottomSheet : BaseDialog<BottomsheetChangePasswordBinding>()
                     }
 
                     State.Idle -> TODO()
-                    State.Loading -> loadingVisible(true)
+                    is State.Loading -> loadingVisible(true)
                     is State.Success -> {
                         loadingVisible(false)
                         dismiss()

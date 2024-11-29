@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationRequest
@@ -27,6 +28,7 @@ import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.turf.TurfMeasurement
+import com.parking.parkingapp.view.map.model.SmartParkModel
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -72,13 +74,15 @@ fun formatTime(hour: Double): String {
 }
 
 @SuppressLint("NewApi")
+val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("h:mma", Locale.US)
+
+@SuppressLint("NewApi")
 fun isCurrentTimeInRange(
     startTime: String,
     endTime: String
 ): Boolean {
-    val formatter = DateTimeFormatter.ofPattern("h:mma", Locale.US)
-    val start = LocalTime.parse(startTime, formatter)
-    val end = LocalTime.parse(endTime, formatter)
+    val start = LocalTime.parse(startTime, dateFormatter)
+    val end = LocalTime.parse(endTime, dateFormatter)
     val now = LocalTime.now()
 
     return if (start.isBefore(end)) {
@@ -174,4 +178,35 @@ fun createBitmapFromView(
         (view.measuredHeight / divScale).toInt(),
         true
     )
+}
+
+fun Double.convertDecimalTimeToCalendar(): Calendar {
+    val hours = this.toInt()
+    val minutes = ((this - hours) * 60).toInt()
+
+    return Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hours)
+        set(Calendar.MINUTE, minutes)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+}
+
+fun List<SmartParkModel>.divideIntoGroups(): List<List<SmartParkModel>> {
+    val sortedStudents = this.sortedByDescending { it.score }
+    val groupSize = sortedStudents.size / 4
+    val remainder = sortedStudents.size % 4
+    val groups = mutableListOf<List<SmartParkModel>>()
+    var startIndex = 0
+    for (i in 0 until 4) {
+        val endIndex = startIndex + groupSize + if (i < remainder) 1 else 0
+        groups.add(sortedStudents.subList(startIndex, endIndex))
+        startIndex = endIndex
+    }
+    return groups
+}
+
+fun Fragment.dpToPx(dp: Int): Int {
+    val density = resources.displayMetrics.density
+    return (dp * density).toInt()
 }

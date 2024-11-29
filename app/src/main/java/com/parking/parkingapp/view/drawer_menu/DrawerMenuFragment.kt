@@ -11,6 +11,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.navigation.NavOptions
 import com.bumptech.glide.Glide
 import com.parking.parkingapp.R
 import com.parking.parkingapp.common.State
@@ -38,6 +39,11 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
     }
 
     override fun initActions() {
+        val navOptions = NavOptions.Builder()
+            .setExitAnim(R.anim.anim_slide_out_left)
+            .setPopEnterAnim(R.anim.anim_slide_in_right)
+            .setPopExitAnim(R.anim.anim_slide_out_right)
+            .build()
         binding.drawerRightSideContainer.setOnClickListener {
             close()
         }
@@ -46,28 +52,29 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
         }
         binding.drawerEditProfile.setOnClickListener {
             (activity as? MainActivity)?.apply {
-                mainNavController().navigate(R.id.profileFragment)
+                mainNavController().navigate(R.id.profileFragment, null, navOptions)
             }
             close()
         }
 
         binding.drawerMapButton.setOnClickListener {
             (activity as? MainActivity)?.apply {
-                mainNavController().navigate(R.id.mapHolderFragment)
+
+                mainNavController().navigate(R.id.mapHolderFragment, null, navOptions)
             }
             close()
         }
 
         binding.drawerMyParkingButton.setOnClickListener {
             (activity as? MainActivity)?.apply {
-                mainNavController().navigate(R.id.myParkingFragment)
+                mainNavController().navigate(R.id.myParkingFragment, null, navOptions)
             }
             close()
         }
 
         binding.drawerHistoryButton.setOnClickListener {
             (activity as? MainActivity)?.apply {
-                mainNavController().navigate(R.id.historyFragment)
+                mainNavController().navigate(R.id.historyFragment, null, navOptions)
             }
             close()
         }
@@ -89,7 +96,7 @@ class DrawerMenuFragment: BaseFragment<FragmentDrawerMenuBinding>() {
                         //suppress
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         //suppress
                     }
 

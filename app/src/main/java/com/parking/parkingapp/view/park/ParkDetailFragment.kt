@@ -20,20 +20,23 @@ import com.parking.parkingapp.view.BaseFragment
 import com.parking.parkingapp.view.MainActivity
 import com.parking.parkingapp.view.map.MapboxFragment
 import com.parking.parkingapp.view.map.calculateDecimalTimeDifference
+import com.parking.parkingapp.view.map.dateFormatter
 import com.parking.parkingapp.view.map.formatCurrency
 import com.parking.parkingapp.view.map.formatCurrencyPerHour
 import com.parking.parkingapp.view.map.formatTime
 import com.parking.parkingapp.view.map.isCurrentTimeInRange
 import com.parking.parkingapp.view.map.roundToOneDecimal
+import com.parking.parkingapp.view.park.ParkDetailViewModel.Companion.OUT_OF_SLOT
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 import java.util.Calendar
 
 @AndroidEntryPoint
 class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
     private val viewModel: ParkDetailViewModel by viewModels()
 
-    private var currentPark: ParkModel? = null
+    private var currentParkDetail: ParkModel? = null
 
     companion object {
         private const val TIME_FORMAT = "%02d:%02d"
@@ -49,8 +52,8 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
             setOnHeaderBack()
         }
         setTotalTime(null, null, 0)
-        currentPark = arguments?.getParcelable(ParkModel::class.java.name) as? ParkModel
-        currentPark?.let {
+        currentParkDetail = arguments?.getParcelable(ParkModel::class.java.name) as? ParkModel
+        currentParkDetail?.let {
             (activity as? MainActivity)?.apply {
                 setHeaderTitle(it.name)
             }
@@ -63,7 +66,9 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
             binding.parkName.text = it.name
             binding.parkAddress.text = it.address
             binding.detailAddress.text = it.detailAddress
-            binding.parkPrice.text = formatCurrencyPerHour(it.pricePerHour)
+            binding.parkSlot.text =
+                resources.getString(R.string.quantity_empty_slot, (it.maxSlot - it.currentSlot).toString())
+            binding.detailPrice.text = formatCurrencyPerHour(it.pricePerHour)
             binding.parkDistance.text = arguments?.getString(ParkModel::class.java.name + "distance")
             val startTime = formatTime(it.openTime)
             val closeTime = formatTime(it.closeTime)
@@ -93,14 +98,14 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
         handlePickTime()
         binding.checkoutButton.setOnClickListener {
             viewModel.submitCheckout(
-                currentPark!!,
-                binding.pickedStartTime.text.toString(),
-                binding.pickedEndTime.text.toString(),
-                binding.totalTime.text.split(" ").first().toDouble(),
-                isCurrentTimeInRange(
-                    formatTime(currentPark!!.openTime),
-                    formatTime(currentPark!!.closeTime)
-                )
+                parkModel = currentParkDetail!!,
+                startTime = binding.pickedStartTime.text.toString(),
+                endTime = binding.pickedEndTime.text.toString(),
+                totalHour = binding.totalTime.text.split(" ").first().toDouble(),
+                isSubmitInOpenTime = run {
+                    val endTime = LocalTime.parse(formatTime(currentParkDetail!!.closeTime), dateFormatter)
+                    LocalTime.now().isAfter(endTime)
+                }
             )
         }
     }
@@ -112,14 +117,16 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
         binding.detailPickStartTime.setOnClickListener {
-            val timePicker = TimePickerDialog(requireContext(), { _, selectedHour, selectedMinute ->
+            val timePicker = TimePickerDialog(
+                requireContext(),
+                R.style.CustomTimePickerTheme, { _, selectedHour, selectedMinute ->
                 startTime = Calendar.getInstance().apply {
                     set(Calendar.HOUR_OF_DAY, selectedHour)
                     set(Calendar.MINUTE, selectedMinute)
                 }.validatePickedTime(
                     startTime = startTime,
                     endTime = endTime,
-                    parkModel = currentPark!!,
+                    parkModel = currentParkDetail!!,
                     isStartTime = true
                 )
                 if (startTime == null) {
@@ -133,20 +140,22 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
                 val time =
                     String.format(TIME_FORMAT, startTime!!.get(Calendar.HOUR_OF_DAY), startTime!!.get(Calendar.MINUTE))
                 binding.pickedStartTime.text = time
-                setTotalTime(startTime, endTime, currentPark!!.pricePerHour)
+                setTotalTime(startTime, endTime, currentParkDetail!!.pricePerHour)
             }, hour, minute, true)
             timePicker.show()
         }
 
         binding.detailPickEndTime.setOnClickListener {
-            val timePicker = TimePickerDialog(requireContext(), { _, selectedHour, selectedMinute ->
+            val timePicker = TimePickerDialog(
+                requireContext(),
+                R.style.CustomTimePickerTheme, { _, selectedHour, selectedMinute ->
                 endTime = Calendar.getInstance().apply {
                     set(Calendar.HOUR_OF_DAY, selectedHour)
                     set(Calendar.MINUTE, selectedMinute)
                 }.validatePickedTime(
                     startTime = startTime,
                     endTime = endTime,
-                    parkModel = currentPark!!,
+                    parkModel = currentParkDetail!!,
                     isStartTime = false
                 )
                 if (endTime == null) {
@@ -160,8 +169,9 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
                 val time =
                     String.format(TIME_FORMAT, endTime!!.get(Calendar.HOUR_OF_DAY), endTime!!.get(Calendar.MINUTE))
                 binding.pickedEndTime.text = time
-                setTotalTime(startTime, endTime, currentPark!!.pricePerHour)
+                setTotalTime(startTime, endTime, currentParkDetail!!.pricePerHour)
             }, hour, minute, true)
+            timePicker.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             timePicker.show()
         }
     }
@@ -202,7 +212,7 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
     override fun obverseFromViewModel(scope: LifecycleCoroutineScope) {
         scope.launch {
             viewModel.singleEvent.collect { state ->
-                loadingVisible(state == State.Loading)
+                loadingVisible(state is State.Loading)
                 handleError((state as? State.Error)?.error as? RentError)
                 when (state) {
                     is State.Error -> {
@@ -213,7 +223,7 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
                         //suppress
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         //suppress
                     }
 
@@ -239,7 +249,9 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
     private fun handleError(rentError: RentError?) {
         if (rentError != null) {
             binding.parkError.apply {
-                text = rentError.errorMessage
+                text =
+                    if (rentError.errorMessage == OUT_OF_SLOT) resources.getString(R.string.out_of_slot)
+                    else rentError.errorMessage
                 hasVisible = true
             }
         } else {

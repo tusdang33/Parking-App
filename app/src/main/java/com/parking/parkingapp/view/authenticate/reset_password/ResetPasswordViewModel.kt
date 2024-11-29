@@ -21,7 +21,7 @@ class ResetPasswordViewModel @Inject constructor(
     fun resetPassword(
         email: String
     ) = viewModelScope.launch {
-        sendSingleEvent(State.Loading)
+        sendSingleEvent(State.Loading())
         val emailValidateResult = validateEmailUseCase(email)
 
         if (!emailValidateResult.successful) {

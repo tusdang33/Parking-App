@@ -99,7 +99,7 @@ class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
                     State.Idle -> {
                         //suppress
                     }
-                    State.Loading -> {
+                    is State.Loading -> {
                         loadingVisible(true)
                     }
 

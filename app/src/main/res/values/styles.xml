@@ -43,4 +43,10 @@
         <item name="android:windowEnterAnimation">@anim/slide_up</item>
         <item name="android:windowExitAnimation">@anim/slide_down</item>
     </style>
+
+    <style name="CustomTimePickerTheme" parent="ThemeOverlay.Material3.MaterialTimePicker">
+        <item name="colorSurface">@color/white</item>
+        <item name="colorPrimary">@color/red</item>
+        <item name="colorSecondary">@color/main_yellow</item>
+    </style>
 </resources>

@@ -14,6 +14,7 @@ import com.parking.parkingapp.data.model.ParkModel
 import com.parking.parkingapp.data.repository.AuthRepository
 import com.parking.parkingapp.data.repository.ParkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -24,37 +25,65 @@ class ParkDetailViewModel @Inject constructor(
     private val parkRepository: ParkRepository,
 ) : BaseViewModel() {
 
+    companion object {
+        const val OUT_OF_SLOT = "OUT_OF_SLOT"
+    }
+
     @SuppressLint("NewApi")
     fun submitCheckout(
         parkModel: ParkModel,
         startTime: String,
         endTime: String,
-        totalPay: Double,
+        totalHour: Double,
         isSubmitInOpenTime: Boolean
     ) =
         viewModelScope.launch {
-            sendSingleEvent(State.Loading)
-            authRepository.getCurrentUser<FirebaseUser>().success { user ->
-                user?.also {
-                    parkRepository.rentPark(
-                        MyRentedPark(
-                            id = "",
-                            userId = it.uid,
-                            park = parkModel,
-                            startTime = startTime,
-                            endTime = endTime,
-                            totalPay = (totalPay * parkModel.pricePerHour).toInt(),
-                            rentedDate = if (isSubmitInOpenTime) LocalDate.now().toString()
-                            else LocalDate.now().plusDays(1).toString()
-                        )
-                    ).success { result ->
-                        sendSingleEvent(State.Success(RentSuccess(result)))
-                    }.fail { error ->
-                        sendSingleEvent(State.Error(RentError(error)))
-                    }
+            sendSingleEvent(State.Loading())
+            delay(200L)
+            parkRepository.getParkById(parkModel.id).success {
+                if (it != null && it.currentSlot < it.maxSlot)
+                    executeRent(
+                        parkModel = parkModel,
+                        startTime = startTime,
+                        endTime = endTime,
+                        totalHour = totalHour,
+                        isSubmitInOpenTime = isSubmitInOpenTime
+                    )
+                else sendSingleEvent(State.Error(RentError(OUT_OF_SLOT)))
+            }.fail {
+                sendSingleEvent(State.Error(RentError(it)))
+            }
+        }
+
+    @SuppressLint("NewApi")
+    private suspend fun executeRent(
+        parkModel: ParkModel,
+        startTime: String,
+        endTime: String,
+        totalHour: Double,
+        isSubmitInOpenTime: Boolean
+    ) {
+        authRepository.getCurrentUser<FirebaseUser>().success { user ->
+            user?.also {
+                parkRepository.rentPark(
+                    MyRentedPark(
+                        id = "",
+                        userId = it.uid,
+                        park = parkModel,
+                        startTime = startTime,
+                        endTime = endTime,
+                        totalPay = (totalHour * parkModel.pricePerHour).toInt(),
+                        rentedDate = if (isSubmitInOpenTime) LocalDate.now().toString()
+                        else LocalDate.now().plusDays(1).toString()
+                    )
+                ).success { result ->
+                    sendSingleEvent(State.Success(RentSuccess(result)))
+                }.fail { error ->
+                    sendSingleEvent(State.Error(RentError(error)))
                 }
             }
         }
+    }
 }
 
 data class RentSuccess(
