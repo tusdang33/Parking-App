@@ -74,13 +74,15 @@ fun formatTime(hour: Double): String {
 }
 
 @SuppressLint("NewApi")
+val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("h:mma", Locale.US)
+
+@SuppressLint("NewApi")
 fun isCurrentTimeInRange(
     startTime: String,
     endTime: String
 ): Boolean {
-    val formatter = DateTimeFormatter.ofPattern("h:mma", Locale.US)
-    val start = LocalTime.parse(startTime, formatter)
-    val end = LocalTime.parse(endTime, formatter)
+    val start = LocalTime.parse(startTime, dateFormatter)
+    val end = LocalTime.parse(endTime, dateFormatter)
     val now = LocalTime.now()
 
     return if (start.isBefore(end)) {

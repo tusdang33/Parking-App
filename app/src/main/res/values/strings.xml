@@ -55,4 +55,10 @@
     <string name="priority_distance">Khoảng cách</string>
     <string name="priority_price">Giá</string>
     <string name="priority_classify">LỌC</string>
+    <string name="priority_price_format">%sk</string>
+    <string name="km">km</string>
+    <string name="vnd_unit">VNĐ</string>
+    <string name="price_per_hour_title">GIÁ THUÊ MỖI GIỜ</string>
+    <string name="quantity_empty_slot">%s Slot trống</string>
+    <string name="out_of_slot">Đã hết slot đỗ</string>
 </resources>

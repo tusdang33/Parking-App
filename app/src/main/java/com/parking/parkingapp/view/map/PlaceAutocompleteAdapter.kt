@@ -16,7 +16,7 @@ class PlaceAutocompleteAdapter:
         ViewHolder(binding.root) {
         fun bind(item: AutoCompleteModel) {
             binding.root.setOnClickListener {
-                onItemClick?.invoke(item.coordinates)
+                onItemClick?.invoke(item.id, item.coordinates)
             }
             binding.suggestText.text = item.addressName
             binding.suggestSubText.apply {
@@ -31,8 +31,8 @@ class PlaceAutocompleteAdapter:
     }
 
     private val suggestList: MutableList<AutoCompleteModel> = mutableListOf()
-    private var onItemClick: ((Point) -> Unit)? = null
-    fun setOnItemClick(onClick: (Point) -> Unit) {
+    private var onItemClick: ((String, Point) -> Unit)? = null
+    fun setOnItemClick(onClick: (String, Point) -> Unit) {
         onItemClick = onClick
     }
 

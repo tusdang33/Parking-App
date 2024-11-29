@@ -46,6 +46,17 @@ class ParkRepositoryImpl @Inject constructor(
             awaitClose()
         }
 
+    override suspend fun getParkById(parkId: String): Resource<ParkModel?> {
+        return try {
+            val result = parkCollectionRef
+                .document(parkId)
+                .get().await().toObject(ParkEntity::class.java)?.toParkModel()
+            Resource.Success(result)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
+        }
+    }
+
     override suspend fun rentPark(myRentedPark: MyRentedPark): Resource<MyRentedPark> {
         return try {
             val result: MyRentedPark

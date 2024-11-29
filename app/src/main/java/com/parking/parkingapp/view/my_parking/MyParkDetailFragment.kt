@@ -36,15 +36,15 @@ class MyParkDetailFragment: BaseFragment<FragmentMyParkDetailBinding>() {
         container: ViewGroup?
     ): FragmentMyParkDetailBinding = FragmentMyParkDetailBinding.inflate(inflater, container, false)
 
-    private var currentPark: MyRentedPark? = null
+    private var currentMyParkDetail: MyRentedPark? = null
 
     override fun initViews() {
         (activity as? MainActivity)?.apply {
             isShowHeader(true)
             setOnHeaderBack()
         }
-        currentPark = arguments?.getParcelable(MyRentedPark::class.java.name) as? MyRentedPark
-        currentPark?.let { myPark ->
+        currentMyParkDetail = arguments?.getParcelable(MyRentedPark::class.java.name) as? MyRentedPark
+        currentMyParkDetail?.let { myPark ->
             (activity as? MainActivity)?.apply {
                 setHeaderTitle(myPark.park.name)
             }
@@ -84,8 +84,8 @@ class MyParkDetailFragment: BaseFragment<FragmentMyParkDetailBinding>() {
                     }
                 )
             }
-            val (hourStart, minuteStart) = currentPark!!.startTime.split(":").map { it.toInt() }
-            val (hourEnd, minuteEnd) = currentPark!!.endTime.split(":").map { it.toInt() }
+            val (hourStart, minuteStart) = currentMyParkDetail!!.startTime.split(":").map { it.toInt() }
+            val (hourEnd, minuteEnd) = currentMyParkDetail!!.endTime.split(":").map { it.toInt() }
             binding.totalTime.text = calculateDecimalTimeDifference(
                 Calendar.getInstance().apply {
                     set(Calendar.HOUR_OF_DAY, hourStart)
@@ -116,41 +116,41 @@ class MyParkDetailFragment: BaseFragment<FragmentMyParkDetailBinding>() {
     override fun initActions() {
         binding.parkDirectionButton.setOnClickListener {
             parentFragment?.setFragmentResult(MapboxFragment::class.java.name, Bundle().apply {
-                putParcelable(MyParkDetailFragment::class.java.name, currentPark!!)
+                putParcelable(MyParkDetailFragment::class.java.name, currentMyParkDetail!!)
             })
             findNavController().navigate(R.id.mapHolderFragment)
         }
         binding.myParkAddTimeButton.setOnClickListener {
             AddTimeBottomSheet().apply {
-                parkPrice = currentPark!!.park.pricePerHour
+                parkPrice = currentMyParkDetail!!.park.pricePerHour
                 maxTimeCanAdd = calculateDecimalTimeDifference(
                     Calendar.getInstance().apply {
                         set(
                             Calendar.HOUR_OF_DAY,
-                            currentPark!!.endTime.split(":").first().toInt()
+                            currentMyParkDetail!!.endTime.split(":").first().toInt()
                         )
                         set(
                             Calendar.MINUTE,
-                            currentPark!!.endTime.split(":").last().toInt()
+                            currentMyParkDetail!!.endTime.split(":").last().toInt()
                         )
                     },
-                    currentPark!!.park.closeTime.convertDecimalTimeToCalendar()
+                    currentMyParkDetail!!.park.closeTime.convertDecimalTimeToCalendar()
                 ).roundToOneDecimal().toInt()
                 onAdd = {
-                    viewModel.addTime(it, binding.pickedEndTime.text.toString(), currentPark!!)
+                    viewModel.addTime(it, binding.pickedEndTime.text.toString(), currentMyParkDetail!!)
                 }
             }.shows(parentFragmentManager)
         }
         binding.checkinButton.setOnClickListener {
-            if (currentPark!!.status == RentStatus.RENTING) {
-                viewModel.checkin(currentPark!!)
+            if (currentMyParkDetail!!.status == RentStatus.RENTING) {
+                viewModel.checkin(currentMyParkDetail!!)
             } else {
-                viewModel.stopRent(currentPark!!)
+                viewModel.stopRent(currentMyParkDetail!!)
             }
 
         }
         binding.cancelButton.setOnClickListener {
-            viewModel.cancel(currentPark!!)
+            viewModel.cancel(currentMyParkDetail!!)
         }
     }
 
@@ -201,15 +201,15 @@ class MyParkDetailFragment: BaseFragment<FragmentMyParkDetailBinding>() {
                         .toInt() + success.addedTime.toInt())
                 }:${timeDelimiter.last()}"
                 text = newEndTime
-                currentPark = currentPark?.copy(endTime = newEndTime)
+                currentMyParkDetail = currentMyParkDetail?.copy(endTime = newEndTime)
             }
         }
     }
 
     private fun handleCheckinSuccess(success: CheckinSuccess?) {
         success?.let {
-            if (currentPark!!.status == RentStatus.RENTING) {
-                currentPark = currentPark?.copy(status = RentStatus.CHECKED_IN)
+            if (currentMyParkDetail!!.status == RentStatus.RENTING) {
+                currentMyParkDetail = currentMyParkDetail?.copy(status = RentStatus.CHECKED_IN)
                 binding.checkinButton.apply {
                     text = resources.getString(R.string.stop_rent)
                     backgroundTintList = resources.getColorStateList(
@@ -217,7 +217,7 @@ class MyParkDetailFragment: BaseFragment<FragmentMyParkDetailBinding>() {
                     )
                 }
                 binding.parkCheckinLoading.indeterminateTintList = resources.getColorStateList(
-                    when (currentPark!!.status) {
+                    when (currentMyParkDetail!!.status) {
                         RentStatus.RENTING -> R.color.green
                         RentStatus.CHECKED_IN -> R.color.black
                         else -> R.color.green

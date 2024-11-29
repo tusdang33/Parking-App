@@ -10,6 +10,7 @@ import com.parking.parkingapp.R
 import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.databinding.ParkingMarkerBinding
 import com.parking.parkingapp.view.map.model.SmartPrioritize
+import com.parking.parkingapp.view.map.roundToOneDecimal
 
 class ParkingMarker private constructor(
     context: Context,
@@ -17,13 +18,14 @@ class ParkingMarker private constructor(
     defStyleAttr: Int = 0
 ): ConstraintLayout(context, attrs, defStyleAttr) {
     companion object {
-        enum class SUB_STATUS(val color: String) {
+        private const val DEFAULT_COLOR = "#000000"
+        enum class SubStatus(val color: String) {
             GOOD("#00871d"),
             NORMAL("#b07700"),
             BAD("#770000")
         }
 
-        enum class STATUS {
+        enum class Status {
             EXCELLENT,
             GOOD,
             NORMAL,
@@ -56,13 +58,13 @@ class ParkingMarker private constructor(
         }
 
         fun setPriority(prioritize: SmartPrioritize) = apply { priority = prioritize }
-        fun suggestStatus(status: STATUS) = apply {
+        fun suggestStatus(status: Status) = apply {
             markerImage =
                 when (status) {
-                    STATUS.EXCELLENT -> R.drawable.top1_marker
-                    STATUS.GOOD -> R.drawable.top2_marker
-                    STATUS.NORMAL -> R.drawable.top3_marker
-                    STATUS.BAD -> R.drawable.top4_marker
+                    Status.EXCELLENT -> R.drawable.top1_marker
+                    Status.GOOD -> R.drawable.top2_marker
+                    Status.NORMAL -> R.drawable.top3_marker
+                    Status.BAD -> R.drawable.top4_marker
                 }
         }
 
@@ -77,16 +79,16 @@ class ParkingMarker private constructor(
                     if (priority == SmartPrioritize.SLOT) {
                         val ratio = currentSlot / maxSlot.toDouble()
                         if (ratio <= 0.3) {
-                            SUB_STATUS.GOOD.color
+                            SubStatus.GOOD.color
                         } else if (ratio > 0.3 && ratio < 0.7) {
-                            SUB_STATUS.NORMAL.color
+                            SubStatus.NORMAL.color
                         } else if (ratio >= 0.7) {
-                            SUB_STATUS.BAD.color
+                            SubStatus.BAD.color
                         } else {
-                            SUB_STATUS.NORMAL.color
+                            SubStatus.NORMAL.color
                         }
                     } else {
-                        "#000000"
+                        DEFAULT_COLOR
                     }
                 )
             }
@@ -94,11 +96,11 @@ class ParkingMarker private constructor(
     }
 
     private fun setPrice(price: Int) {
-        binding.price.text = "{$price}k"
+        binding.price.text = resources.getString(R.string.priority_price_format, (price/1000).toString())
     }
 
     private fun setDistance(distance: Double) {
-        binding.distance.text = distance.toString()
+        binding.distance.text = distance.roundToOneDecimal().toString()
     }
 
     private fun setSlot(

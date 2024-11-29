@@ -25,7 +25,6 @@ class SplashScreen: BaseFragment<FragmentSplashBinding>() {
     override fun initViews() {
         (activity as? MainActivity)?.apply {
             isShowHeader(false)
-            isFirstTimeLogin = true
         }
     }
 

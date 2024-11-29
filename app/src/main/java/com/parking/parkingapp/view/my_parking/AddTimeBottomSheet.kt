@@ -43,13 +43,14 @@ class AddTimeBottomSheet: BaseDialog<BottomSheetAddTimeBinding>() {
     override fun initActions() {
         binding.plus.setOnClickListener {
             currentTime = (currentTime + 1.0).also {
-                binding.addTimeError.hasVisible = it > maxTimeCanAdd
+                val isError = it > maxTimeCanAdd
+                binding.addTimeError.hasVisible = isError
+                handlePriceHour(isError)
             }.coerceAtMost(maxTimeCanAdd.toDouble())
             binding.totalAddHour.text = getString(
                 R.string.total_time,
                 currentTime.toString()
             )
-            handlePriceHour()
         }
 
         binding.minus.setOnClickListener {
@@ -59,21 +60,21 @@ class AddTimeBottomSheet: BaseDialog<BottomSheetAddTimeBinding>() {
                 R.string.total_time,
                 currentTime.toString()
             )
-            handlePriceHour()
+            handlePriceHour(false)
         }
-        binding.myParkSaveAdd.setOnClickListener {
+        binding.myParkAddTime.setOnClickListener {
             onAdd?.invoke(currentTime)
             dismiss()
         }
     }
 
-    private fun handlePriceHour() {
-        binding.myParkAddTimeText.apply {
+    private fun handlePriceHour(isError: Boolean) {
+        binding.myParkAddTime.apply {
             text = getString(
                 R.string.detail_checkout,
                 formatCurrency(currentTime * parkPrice)
             ).uppercase()
-            isEnabled = currentTime != 0.0
+            isEnabled = currentTime != 0.0 && !isError
             backgroundTintList = resources.getColorStateList(
                 if (isEnabled) R.color.main_yellow
                 else R.color.gray, null

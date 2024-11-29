@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/my_park_add_time"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/top_rounded_shape"
@@ -63,28 +62,18 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <FrameLayout
-        android:id="@+id/my_park_save_add"
+    <TextView
+        android:id="@+id/my_park_add_time"
+        android:backgroundTint="@color/gray"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:gravity="center"
-        android:padding="5dp">
-
-        <TextView
-            android:id="@+id/my_park_add_time_text"
-            android:backgroundTint="@color/gray"
-            android:enabled="false"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/rounded_shape"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="3dp"
-            android:text="@string/detail_checkout_default"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-    </FrameLayout>
+        android:layout_gravity="center"
+        android:background="@drawable/rounded_shape"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="3dp"
+        android:text="@string/detail_checkout_default"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 </LinearLayout>
