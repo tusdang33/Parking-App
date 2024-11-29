@@ -30,6 +30,10 @@ abstract class BaseFragment<VB: ViewBinding>: Fragment() {
         savedInstanceState: Bundle?
     ) {
         super.onViewCreated(view, savedInstanceState)
+        (activity as? MainActivity)?.apply {
+            isShowHeader(false)
+            isShowMenu(false)
+        }
         initViews()
         initActions()
         intiData()

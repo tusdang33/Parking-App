@@ -8,7 +8,7 @@ import com.parking.parkingapp.R
 import com.parking.parkingapp.databinding.DialogProfileSuccessBinding
 import com.parking.parkingapp.view.BaseDialog
 
-class ChangeProfileSuccessDialog : BaseDialog<DialogProfileSuccessBinding>() {
+class SuccessDialog : BaseDialog<DialogProfileSuccessBinding>() {
     override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): DialogProfileSuccessBinding =
         DialogProfileSuccessBinding.inflate(inflater, container, false)
 
@@ -17,7 +17,7 @@ class ChangeProfileSuccessDialog : BaseDialog<DialogProfileSuccessBinding>() {
     }
 
     override fun initActions() {
-        binding.profileSuccessChange.setOnClickListener {
+        binding.successChange.setOnClickListener {
             dismiss()
         }
     }
@@ -33,7 +33,7 @@ class ChangeProfileSuccessDialog : BaseDialog<DialogProfileSuccessBinding>() {
     override fun shows(fm: FragmentManager): BaseDialog<DialogProfileSuccessBinding> {
         kotlin.runCatching {
             if (!fm.isStateSaved) {
-                show(fm, ChangeProfileSuccessDialog::class.java.name)
+                show(fm, SuccessDialog::class.java.name)
             }
         }
         return this

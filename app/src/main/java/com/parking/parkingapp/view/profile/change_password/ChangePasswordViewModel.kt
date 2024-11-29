@@ -62,7 +62,7 @@ class ChangePasswordViewModel @Inject constructor(
     }
 
     private fun updatePass(newPass: String) = viewModelScope.launch(NonCancellable) {
-        sendSingleEvent(State.Loading)
+        sendSingleEvent(State.Loading())
         authRepository.updatePass(newPass).success {
             sendSingleEvent(State.Success())
         }.fail {

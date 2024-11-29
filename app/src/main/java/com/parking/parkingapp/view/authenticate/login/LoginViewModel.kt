@@ -28,7 +28,7 @@ class LoginViewModel @Inject constructor(
         email: String,
         password: String
     ) = viewModelScope.launch {
-        sendSingleEvent(State.Loading)
+        sendSingleEvent(State.Loading())
         delay(200L)
         val emailValidateResult = validateEmailUseCase(email)
         val passwordValidateResult = validatePasswordUseCase(password)

@@ -51,6 +51,71 @@
             app:layout_constraintTop_toTopOf="@id/map_search_edt"
             tools:ignore="ContentDescription" />
 
+        <LinearLayout
+            android:id="@+id/map_priority"
+            android:layout_width="52dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/white_rounded_outline"
+            android:divider="@drawable/divider_vertical"
+            android:elevation="2dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingVertical="10dp"
+            android:showDividers="middle"
+            app:layout_constraintEnd_toEndOf="@id/map_menu"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/map_menu"
+            tools:ignore="ContentDescription">
+
+            <TextView
+                android:id="@+id/map_priority_classify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/priority_classify"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/map_priority_smart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:background="@drawable/rounded_shape_8"
+                android:paddingHorizontal="2dp"
+                android:paddingVertical="10dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/smart" />
+
+            <TextView
+                android:id="@+id/map_priority_capacity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/priority_capacity"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/map_priority_distance"
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:text="@string/priority_distance"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/map_priority_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/priority_price"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+        </LinearLayout>
+
         <EditText
             android:id="@+id/map_search_edt"
             style="@style/EditTextWhite"
@@ -102,6 +167,125 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             tools:ignore="ContentDescription" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/park_info_container"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_marginHorizontal="20dp"
+            android:background="@drawable/white_rounded_outline"
+            android:elevation="4dp"
+            android:padding="10dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/map_track"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/park_image"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/parking_placeholder"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/park_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Bai do Long Thanh"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@id/park_address"
+                app:layout_constraintStart_toEndOf="@id/park_image"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/park_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Hanoi, VietNam"
+                android:textSize="10sp"
+                app:layout_constraintStart_toEndOf="@id/park_image"
+                app:layout_constraintTop_toBottomOf="@id/park_name"
+                tools:ignore="SmallSp" />
+
+            <ImageView
+                android:id="@+id/park_coin"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/coin"
+                app:layout_constraintBottom_toBottomOf="@id/park_price"
+                app:layout_constraintStart_toEndOf="@id/park_image"
+                app:layout_constraintTop_toTopOf="@id/park_price"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/park_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="3dp"
+                android:text="20.000d/h"
+                android:textColor="@color/black"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/park_dot"
+                app:layout_constraintStart_toEndOf="@id/park_coin"
+                app:layout_constraintTop_toBottomOf="@id/park_address"
+                tools:ignore="SmallSp" />
+
+            <ImageView
+                android:id="@+id/park_dot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="3dp"
+                android:src="@drawable/dot"
+                app:layout_constraintBottom_toBottomOf="@id/park_price"
+                app:layout_constraintEnd_toStartOf="@id/park_direction"
+                app:layout_constraintStart_toEndOf="@id/park_price"
+                app:layout_constraintTop_toTopOf="@id/park_price"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/park_direction"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:src="@drawable/gps"
+                app:layout_constraintBottom_toBottomOf="@id/park_price"
+                app:layout_constraintEnd_toStartOf="@id/park_distance"
+                app:layout_constraintStart_toEndOf="@id/park_dot"
+                app:layout_constraintTop_toTopOf="@id/park_price"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/park_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="3dp"
+                android:text="200m"
+                android:textColor="@color/black"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/park_direction"
+                app:layout_constraintTop_toBottomOf="@id/park_address"
+                tools:ignore="SmallSp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/icon_park_outline_right"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

@@ -1,0 +1,2103 @@
+Subject: [PATCH] adding profile
+---
+Index: app/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle b/app/build.gradle
+--- a/app/build.gradle	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/build.gradle	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -64,6 +64,7 @@
+     implementation libs.mapbox.autocomplete
+     implementation libs.mapbox.navigation
+     implementation libs.circle.imageview
++    implementation libs.image.glide
+     kapt(libs.dagger.hilt.complier)
+     implementation platform(libs.firebase.bom)
+     testImplementation libs.junit
+Index: app/src/main/java/com/parking/parkingapp/common/State.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/common/State.kt b/app/src/main/java/com/parking/parkingapp/common/State.kt
+--- a/app/src/main/java/com/parking/parkingapp/common/State.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/common/State.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -2,7 +2,9 @@
+ 
+ sealed class State {
+     object Loading: State()
+-    data class Error(val errorMessage: String? = null): State()
++    data class Error(val error: ErrorDataState? = null): State()
+     object Success: State()
+     object Idle: State()
+-}
+\ No newline at end of file
++}
++
++interface ErrorDataState
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/common/Utils.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/common/Utils.kt b/app/src/main/java/com/parking/parkingapp/common/Utils.kt
+--- a/app/src/main/java/com/parking/parkingapp/common/Utils.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/common/Utils.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -2,6 +2,8 @@
+ 
+ import android.app.Activity
+ import android.content.Context
++import android.content.Intent
++import android.net.Uri
+ import android.view.View
+ import android.view.inputmethod.InputMethodManager
+ import androidx.fragment.app.Fragment
+@@ -17,4 +19,25 @@
+ fun Context.hideKeyboard(view: View) {
+     val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+     inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
++}
++
++inline var View.hasVisible: Boolean
++    get() = visibility == View.VISIBLE
++    set(value) {
++        visibility = if (value) View.VISIBLE else View.GONE
++    }
++
++fun grantReadPermissionToUri(
++    context: Context,
++    uri: Uri
++) {
++    context.grantUriPermission(
++        context.packageName,
++        uri,
++        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
++    )
++    context.contentResolver.takePersistableUriPermission(
++        uri,
++        Intent.FLAG_GRANT_READ_URI_PERMISSION
++    )
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/BaseDialog.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/BaseDialog.kt b/app/src/main/java/com/parking/parkingapp/view/BaseDialog.kt
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/java/com/parking/parkingapp/view/BaseDialog.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,44 @@
++package com.parking.parkingapp.view
++
++import android.app.Dialog
++import android.os.Bundle
++import android.view.LayoutInflater
++import android.view.View
++import android.view.ViewGroup
++import androidx.appcompat.app.AlertDialog
++import androidx.fragment.app.DialogFragment
++import androidx.fragment.app.FragmentManager
++import androidx.viewbinding.ViewBinding
++
++abstract class BaseDialog<VB : ViewBinding> : DialogFragment() {
++    private var _binding: VB? = null
++    protected val binding get() = _binding!!
++
++    abstract fun inflateBinding(
++        inflater: LayoutInflater,
++        container: ViewGroup?
++    ): VB
++
++    abstract fun initView()
++    abstract fun initActions()
++
++    override fun onDestroy() {
++        super.onDestroy()
++        _binding = null
++    }
++
++    abstract fun shows(fm: FragmentManager): BaseDialog<VB>
++    open fun onCreateCustomAnimation(): Int = 0
++
++    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
++        _binding = inflateBinding(inflater, container)
++        return binding.root
++    }
++
++    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
++        super.onViewCreated(view, savedInstanceState)
++        initView()
++        initActions()
++        dialog?.window?.attributes?.windowAnimations = onCreateCustomAnimation()
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/MainActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/MainActivity.kt b/app/src/main/java/com/parking/parkingapp/view/MainActivity.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/MainActivity.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/MainActivity.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -5,10 +5,10 @@
+ import androidx.lifecycle.DefaultLifecycleObserver
+ import androidx.lifecycle.LifecycleOwner
+ import androidx.navigation.findNavController
+-import androidx.navigation.fragment.NavHostFragment
+ import com.mapbox.navigation.base.options.NavigationOptions
+ import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp
+ import com.parking.parkingapp.R
++import com.parking.parkingapp.common.hasVisible
+ import com.parking.parkingapp.databinding.ActivityMainBinding
+ import dagger.hilt.android.AndroidEntryPoint
+ 
+@@ -46,6 +46,20 @@
+     fun mainNavController() = findNavController(R.id.nav_host_fragment)
+     fun menuNavController() = findNavController(R.id.drawer_menu)
+ 
++    fun setOnHeaderBack(onBack: (() -> Unit)? = null) {
++        binding.headerBack.setOnClickListener {
++            onBack?.invoke() ?: findNavController(R.id.nav_host_fragment).popBackStack()
++        }
++    }
++
++    fun setHeaderTitle(title: String) {
++        binding.headerTitle.text = title
++    }
++
++    fun isShowHeader(isShow: Boolean) {
++        binding.header.hasVisible = isShow
++    }
++
+ 
+     override fun inflateBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginFragment.kt b/app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginFragment.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginFragment.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginFragment.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -1,23 +1,20 @@
+ package com.parking.parkingapp.view.authenticate.login
+ 
+-import android.os.Bundle
+-import android.text.InputType
+-import android.text.method.PasswordTransformationMethod
+ import android.view.LayoutInflater
+ import android.view.View
+-import android.view.View.GONE
+ import android.view.View.VISIBLE
+ import android.view.ViewGroup
+ import android.widget.ImageView
+ import androidx.fragment.app.viewModels
+ import androidx.lifecycle.LifecycleCoroutineScope
+-import androidx.lifecycle.lifecycleScope
+ import androidx.navigation.NavOptions
+ import androidx.navigation.fragment.findNavController
+ import com.parking.parkingapp.R
+ import com.parking.parkingapp.common.State
++import com.parking.parkingapp.common.hasVisible
+ import com.parking.parkingapp.databinding.FragmentLoginBinding
+ import com.parking.parkingapp.view.BaseFragment
++import com.parking.parkingapp.view.MainActivity
+ import dagger.hilt.android.AndroidEntryPoint
+ import kotlinx.coroutines.launch
+ 
+@@ -27,7 +24,9 @@
+     private var isShowingPassword = false
+ 
+     override fun initViews() {
+-        //suppress
++        (activity as? MainActivity)?.apply {
++            isShowHeader(false)
++        }
+     }
+ 
+     override fun initActions() {
+@@ -42,19 +41,20 @@
+             findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+         }
+ 
+-        binding.loginEyeButton.setOnClickListener {
+-            with(it as ImageView) {
++        binding.loginEyeButton.setOnClickListener { eye ->
++            with(binding.loginEdtPassword) {
+                 if (isShowingPassword) {
+-                    setImageResource(R.drawable.eye_on_fill)
+-                    binding.loginEdtPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+-                    binding.loginEdtPassword.transformationMethod = PasswordTransformationMethod.getInstance()
++                    (eye as ImageView).setImageResource(com.parking.parkingapp.R.drawable.eye_on_fill)
++                    inputType =
++                        android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
++                    transformationMethod = android.text.method.PasswordTransformationMethod.getInstance()
+                 } else {
+-                    setImageResource(R.drawable.eye_off_fill)
+-                    binding.loginEdtPassword.inputType = InputType.TYPE_CLASS_TEXT
+-                    binding.loginEdtPassword.transformationMethod = null
++                    (eye as ImageView).setImageResource(com.parking.parkingapp.R.drawable.eye_off_fill)
++                    inputType = android.text.InputType.TYPE_CLASS_TEXT
++                    transformationMethod = null
+                 }
+                 isShowingPassword = !isShowingPassword
+-                binding.loginEdtPassword.setSelection(binding.loginEdtPassword.text.length)
++                setSelection(this.text.length)
+             }
+         }
+     }
+@@ -68,7 +68,7 @@
+             viewModel.singleEvent.collect { state ->
+                 when (state) {
+                     is State.Error -> {
+-                        handleLoginError(true)
++                        handleLoginError(state.error as FormatLoginError)
+                         loadingVisible(false)
+                     }
+                     State.Idle -> {
+@@ -81,7 +81,7 @@
+ 
+                     State.Success -> {
+                         navigateToHomeScreen()
+-                        handleLoginError(false)
++                        handleLoginError(FormatLoginError())
+                         loadingVisible(false)
+                     }
+                 }
+@@ -100,8 +100,22 @@
+ 
+     }
+ 
+-    private fun handleLoginError(isVisible: Boolean) {
+-        binding.loginTextError.visibility = if (isVisible) VISIBLE else GONE
++    private fun handleLoginError(loginError: FormatLoginError) {
++        val (emailError, passwordError, commonError) = loginError
++        binding.loginErrorEmail.apply {
++            hasVisible = emailError != null
++            text = emailError
++        }
++
++        binding.loginErrorPassword.apply {
++            hasVisible = passwordError != null
++            text = passwordError
++        }
++
++        binding.loginErrorCommon.apply {
++            hasVisible = commonError != null
++            text = commonError
++        }
+     }
+ 
+     private fun navigateToHomeScreen() {
+Index: app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginViewModel.kt b/app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginViewModel.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginViewModel.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/authenticate/login/LoginViewModel.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -2,6 +2,7 @@
+ 
+ import androidx.lifecycle.viewModelScope
+ import com.parking.parkingapp.common.BaseViewModel
++import com.parking.parkingapp.common.ErrorDataState
+ import com.parking.parkingapp.common.State
+ import com.parking.parkingapp.common.fail
+ import com.parking.parkingapp.common.success
+@@ -35,7 +36,14 @@
+         ).any { !it.successful }
+ 
+         if (hasError) {
+-            sendSingleEvent(State.Error())
++            sendSingleEvent(
++                State.Error(
++                    FormatLoginError(
++                        emailError = emailValidateResult.errorMessage,
++                        passwordError = passwordValidateResult.errorMessage,
++                    )
++                )
++            )
+             return@launch
+         }
+ 
+@@ -44,7 +52,19 @@
+                 sendSingleEvent(State.Success)
+             }
+             .fail {
+-                sendSingleEvent(State.Error(it))
++                sendSingleEvent(
++                    State.Error(
++                        FormatLoginError(
++                            commonError = it
++                        )
++                    )
++                )
+             }
+     }
+-}
+\ No newline at end of file
++}
++
++internal data class FormatLoginError(
++    val emailError: String? = null,
++    val passwordError: String? = null,
++    val commonError: String? = null
++) : ErrorDataState
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterFragment.kt b/app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterFragment.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterFragment.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterFragment.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -3,19 +3,20 @@
+ import android.text.InputType
+ import android.text.method.PasswordTransformationMethod
+ import android.view.LayoutInflater
+-import android.view.View.GONE
+ import android.view.View.INVISIBLE
+ import android.view.View.VISIBLE
+ import android.view.ViewGroup
+ import android.widget.ImageView
+ import androidx.fragment.app.viewModels
+ import androidx.lifecycle.LifecycleCoroutineScope
+-import androidx.lifecycle.lifecycleScope
+ import androidx.navigation.fragment.findNavController
+ import com.parking.parkingapp.R
+ import com.parking.parkingapp.common.State
++import com.parking.parkingapp.common.hasVisible
+ import com.parking.parkingapp.databinding.FragmentRegisterBinding
+ import com.parking.parkingapp.view.BaseFragment
++import com.parking.parkingapp.view.MainActivity
++import com.parking.parkingapp.view.authenticate.login.FormatRegisterError
+ import com.parking.parkingapp.view.authenticate.login.RegisterViewModel
+ import dagger.hilt.android.AndroidEntryPoint
+ import kotlinx.coroutines.launch
+@@ -24,9 +25,12 @@
+ class RegisterFragment: BaseFragment<FragmentRegisterBinding>() {
+     private val viewModel: RegisterViewModel by viewModels()
+     private var isShowingPassword = false
++    private var isShowingRetypePassword = false
+ 
+     override fun initViews() {
+-        //suppress
++        (activity as? MainActivity)?.apply {
++            isShowHeader(false)
++        }
+     }
+ 
+     override fun initActions() {
+@@ -44,35 +48,37 @@
+             findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
+         }
+ 
+-        binding.registerEyeButton.setOnClickListener {
+-            with(it as ImageView) {
++        binding.registerEyeButton.setOnClickListener { eye ->
++            with(binding.registerEdtPassword) {
+                 if (isShowingPassword) {
+-                    setImageResource(R.drawable.eye_on_fill)
+-                    binding.registerEdtPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+-                    binding.registerEdtPassword.transformationMethod = PasswordTransformationMethod.getInstance()
++                    (eye as ImageView).setImageResource(R.drawable.eye_on_fill)
++                    inputType =
++                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
++                    transformationMethod = PasswordTransformationMethod.getInstance()
+                 } else {
+-                    setImageResource(R.drawable.eye_off_fill)
+-                    binding.registerEdtPassword.inputType = InputType.TYPE_CLASS_TEXT
+-                    binding.registerEdtPassword.transformationMethod = null
++                    (eye as ImageView).setImageResource(R.drawable.eye_off_fill)
++                    inputType = InputType.TYPE_CLASS_TEXT
++                    transformationMethod = null
+                 }
+                 isShowingPassword = !isShowingPassword
+-                binding.registerEdtPassword.setSelection(binding.registerEdtPassword.text.length)
++                setSelection(this.text.length)
+             }
+         }
+ 
+-        binding.registerEyeRetype.setOnClickListener {
+-            with(it as ImageView) {
+-                if (isShowingPassword) {
+-                    setImageResource(R.drawable.eye_on_fill)
+-                    binding.registerEdtRetypePassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+-                    binding.registerEdtRetypePassword.transformationMethod = PasswordTransformationMethod.getInstance()
++        binding.registerEyeRetype.setOnClickListener { eye ->
++            with(binding.registerEdtRetypePassword) {
++                if (isShowingRetypePassword) {
++                    (eye as ImageView).setImageResource(R.drawable.eye_on_fill)
++                    inputType =
++                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
++                    transformationMethod = PasswordTransformationMethod.getInstance()
+                 } else {
+-                    setImageResource(R.drawable.eye_off_fill)
+-                    binding.registerEdtRetypePassword.inputType = InputType.TYPE_CLASS_TEXT
+-                    binding.registerEdtRetypePassword.transformationMethod = null
++                    (eye as ImageView).setImageResource(R.drawable.eye_off_fill)
++                    inputType = InputType.TYPE_CLASS_TEXT
++                    transformationMethod = null
+                 }
+-                isShowingPassword = !isShowingPassword
+-                binding.registerEdtRetypePassword.setSelection(binding.registerEdtRetypePassword.text.length)
++                isShowingRetypePassword = !isShowingRetypePassword
++                setSelection(this.text.length)
+             }
+         }
+     }
+@@ -86,7 +92,7 @@
+             viewModel.singleEvent.collect { state ->
+                 when (state) {
+                     is State.Error -> {
+-                        visibleTextError(true)
++                        handleRegisterError(state.error as FormatRegisterError)
+                         loadingVisible(false)
+                     }
+ 
+@@ -98,7 +104,7 @@
+                     }
+ 
+                     State.Success -> {
+-                        visibleTextError(false)
++                        handleRegisterError(FormatRegisterError())
+                         findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
+                         loadingVisible(false)
+                     }
+@@ -118,8 +124,27 @@
+ 
+     }
+ 
+-    private fun visibleTextError(visible: Boolean) {
+-        binding.registerTextError.visibility = if (visible) VISIBLE else GONE
++    private fun handleRegisterError(registerError: FormatRegisterError) {
++        val (emailError, passwordError, retypeError, commonError) = registerError
++        binding.registerErrorEmail.apply {
++            hasVisible = emailError != null
++            text = emailError
++        }
++
++        binding.registerErrorPassword.apply {
++            hasVisible = passwordError != null
++            text = passwordError
++        }
++
++        binding.registerErrorRetypePassword.apply {
++            hasVisible = retypeError != null
++            text = retypeError
++        }
++
++        binding.registerErrorCommon.apply {
++            hasVisible = commonError != null
++            text = commonError
++        }
+     }
+ 
+     override fun inflateBinding(
+Index: app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterViewModel.kt b/app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterViewModel.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterViewModel.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/authenticate/register/RegisterViewModel.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -2,6 +2,7 @@
+ 
+ import androidx.lifecycle.viewModelScope
+ import com.parking.parkingapp.common.BaseViewModel
++import com.parking.parkingapp.common.ErrorDataState
+ import com.parking.parkingapp.common.State
+ import com.parking.parkingapp.common.fail
+ import com.parking.parkingapp.common.success
+@@ -43,7 +44,15 @@
+         ).any { !it.successful }
+ 
+         if (hasError) {
+-            sendSingleEvent(State.Error())
++            sendSingleEvent(
++                State.Error(
++                    FormatRegisterError(
++                        emailError = emailValidateResult.errorMessage,
++                        passwordError = passwordValidateResult.errorMessage,
++                        retypePasswordError = retypePasswordValidateResult.errorMessage,
++                    )
++                )
++            )
+             return@launch
+         }
+ 
+@@ -55,7 +64,20 @@
+                 sendSingleEvent(State.Success)
+             }
+             .fail {
+-                sendSingleEvent(State.Error(it))
++                sendSingleEvent(
++                    State.Error(
++                        FormatRegisterError(
++                            commonError = it
++                        )
++                    )
++                )
+             }
+     }
+-}
+\ No newline at end of file
++}
++
++internal data class FormatRegisterError(
++    val emailError: String? = null,
++    val passwordError: String? = null,
++    val retypePasswordError: String? = null,
++    val commonError: String? = null
++) : ErrorDataState
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/drawer_menu/DrawerMenuFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/drawer_menu/DrawerMenuFragment.kt b/app/src/main/java/com/parking/parkingapp/view/drawer_menu/DrawerMenuFragment.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/drawer_menu/DrawerMenuFragment.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/drawer_menu/DrawerMenuFragment.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -37,6 +37,12 @@
+         binding.menuLogoutBtn.setOnClickListener {
+             viewModel.logout()
+         }
++        binding.drawerEditProfile.setOnClickListener {
++            (activity as? MainActivity)?.apply {
++                mainNavController().navigate(R.id.profileFragment)
++            }
++            close()
++        }
+     }
+ 
+     override fun intiData() {
+Index: app/src/main/java/com/parking/parkingapp/view/home/HomeFragment.kt
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/home/HomeFragment.kt b/app/src/main/java/com/parking/parkingapp/view/home/HomeFragment.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/home/HomeFragment.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/home/HomeFragment.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -26,7 +26,9 @@
+     ): FragmentHomeBinding = FragmentHomeBinding.inflate(inflater, container, false)
+ 
+     override fun initViews() {
+-        //suppress
++        (activity as? MainActivity)?.apply {
++            isShowHeader(false)
++        }
+     }
+ 
+     override fun initActions() {
+Index: app/src/main/java/com/parking/parkingapp/view/map/MapboxFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/map/MapboxFragment.kt b/app/src/main/java/com/parking/parkingapp/view/map/MapboxFragment.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/map/MapboxFragment.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/map/MapboxFragment.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -61,6 +61,7 @@
+ import com.parking.parkingapp.common.hideKeyboard
+ import com.parking.parkingapp.databinding.FragmentMapboxBinding
+ import com.parking.parkingapp.view.BaseFragment
++import com.parking.parkingapp.view.MainActivity
+ import com.parking.parkingapp.view.map.ui.PDivierItemDecoration
+ import com.parking.parkingapp.view.map.ui.ParkingMarker
+ import dagger.hilt.android.AndroidEntryPoint
+@@ -114,6 +115,9 @@
+ 
+     override fun initViews() {
+         checkLocationPermission()
++        (activity as? MainActivity)?.apply {
++            isShowHeader(false)
++        }
+         binding.mapView.apply {
+             compass.enabled = false
+             logo.enabled = false
+Index: app/src/main/java/com/parking/parkingapp/view/profile/ChangePasswordBottomSheet.kt
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/profile/ChangePasswordBottomSheet.kt b/app/src/main/java/com/parking/parkingapp/view/profile/ChangePasswordBottomSheet.kt
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/java/com/parking/parkingapp/view/profile/ChangePasswordBottomSheet.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,97 @@
++package com.parking.parkingapp.view.profile
++
++import android.text.InputType
++import android.text.method.PasswordTransformationMethod
++import android.view.Gravity
++import android.view.LayoutInflater
++import android.view.ViewGroup
++import android.widget.ImageView
++import androidx.fragment.app.FragmentManager
++import com.parking.parkingapp.R
++import com.parking.parkingapp.databinding.BottomsheetChangePasswordBinding
++import com.parking.parkingapp.view.BaseDialog
++
++class ChangePasswordBottomSheet : BaseDialog<BottomsheetChangePasswordBinding>() {
++    private var isShowingOldPassword = false
++    private var isShowingNewPassword = false
++    private var isShowingRetypePassword = false
++    override fun inflateBinding(
++        inflater: LayoutInflater,
++        container: ViewGroup?
++    ): BottomsheetChangePasswordBinding = BottomsheetChangePasswordBinding.inflate(inflater, container, false)
++
++    override fun onStart() {
++        super.onStart()
++        dialog?.window?.setBackgroundDrawableResource(R.color.colorTransparent)
++        dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
++        dialog?.window?.setGravity(Gravity.BOTTOM)
++        dialog?.setCanceledOnTouchOutside(true)
++    }
++
++    override fun initView() {
++        //suppress
++    }
++
++    override fun initActions() {
++        binding.changeEyeButtonOld.setOnClickListener { eye ->
++            with(binding.changeEdtOldPassword) {
++                if (isShowingOldPassword) {
++                    (eye as ImageView).setImageResource(R.drawable.eye_on_fill)
++                    inputType =
++                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
++                    transformationMethod = PasswordTransformationMethod.getInstance()
++                } else {
++                    (eye as ImageView).setImageResource(R.drawable.eye_off_fill)
++                    inputType = InputType.TYPE_CLASS_TEXT
++                    transformationMethod = null
++                }
++                isShowingOldPassword = !isShowingOldPassword
++                setSelection(this.text.length)
++            }
++        }
++
++        binding.changeEyeButtonNew.setOnClickListener { eye ->
++            with(binding.changeEdtNewPassword) {
++                if (isShowingNewPassword) {
++                    (eye as ImageView).setImageResource(R.drawable.eye_on_fill)
++                    inputType =
++                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
++                    transformationMethod = PasswordTransformationMethod.getInstance()
++                } else {
++                    (eye as ImageView).setImageResource(R.drawable.eye_off_fill)
++                    inputType = InputType.TYPE_CLASS_TEXT
++                    transformationMethod = null
++                }
++                isShowingNewPassword = !isShowingNewPassword
++                setSelection(this.text.length)
++            }
++        }
++
++        binding.changeEyeButtonRetype.setOnClickListener { eye ->
++            with(binding.changeEdtRetypePassword) {
++                if (isShowingRetypePassword) {
++                    (eye as ImageView).setImageResource(R.drawable.eye_on_fill)
++                    inputType =
++                        InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
++                    transformationMethod = PasswordTransformationMethod.getInstance()
++                } else {
++                    (eye as ImageView).setImageResource(R.drawable.eye_off_fill)
++                    inputType = InputType.TYPE_CLASS_TEXT
++                    transformationMethod = null
++                }
++                isShowingRetypePassword = !isShowingRetypePassword
++                setSelection(this.text.length)
++            }
++        }
++    }
++
++    override fun onCreateCustomAnimation(): Int = R.style.BottomSheetDialogAnim
++    override fun shows(fm: FragmentManager): BaseDialog<BottomsheetChangePasswordBinding> {
++        kotlin.runCatching {
++            if (!fm.isStateSaved) {
++                show(fm, ChangePasswordBottomSheet::class.java.name)
++            }
++        }
++        return this
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/profile/ChangeProfileSuccessDialog.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/profile/ChangeProfileSuccessDialog.kt b/app/src/main/java/com/parking/parkingapp/view/profile/ChangeProfileSuccessDialog.kt
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/java/com/parking/parkingapp/view/profile/ChangeProfileSuccessDialog.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,31 @@
++package com.parking.parkingapp.view.profile
++
++import android.view.LayoutInflater
++import android.view.ViewGroup
++import androidx.fragment.app.FragmentManager
++import com.parking.parkingapp.databinding.DialogProfileSuccessBinding
++import com.parking.parkingapp.view.BaseDialog
++
++class ChangeProfileSuccessDialog : BaseDialog<DialogProfileSuccessBinding>() {
++    override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): DialogProfileSuccessBinding =
++        DialogProfileSuccessBinding.inflate(inflater, container, false)
++
++    override fun initView() {
++        //suppress
++    }
++
++    override fun initActions() {
++        binding.profileSuccessChange.setOnClickListener {
++            dismiss()
++        }
++    }
++
++    override fun shows(fm: FragmentManager): BaseDialog<DialogProfileSuccessBinding> {
++        kotlin.runCatching {
++            if (!fm.isStateSaved) {
++                show(fm, ChangeProfileSuccessDialog::class.java.name)
++            }
++        }
++        return this
++    }
++}
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/profile/ProfileFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/profile/ProfileFragment.kt b/app/src/main/java/com/parking/parkingapp/view/profile/ProfileFragment.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/profile/ProfileFragment.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/profile/ProfileFragment.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -2,30 +2,93 @@
+ 
+ import android.view.LayoutInflater
+ import android.view.ViewGroup
++import androidx.activity.result.PickVisualMediaRequest
++import androidx.activity.result.contract.ActivityResultContracts
++import androidx.fragment.app.viewModels
+ import androidx.lifecycle.LifecycleCoroutineScope
++import androidx.navigation.fragment.findNavController
++import com.bumptech.glide.Glide
++import com.parking.parkingapp.R
++import com.parking.parkingapp.common.State
++import com.parking.parkingapp.common.grantReadPermissionToUri
+ import com.parking.parkingapp.databinding.FragmentProfileBinding
+ import com.parking.parkingapp.view.BaseFragment
++import com.parking.parkingapp.view.MainActivity
++import dagger.hilt.android.AndroidEntryPoint
++import kotlinx.coroutines.launch
+ 
++@AndroidEntryPoint
+ class ProfileFragment: BaseFragment<FragmentProfileBinding>() {
++    private val viewModel: ProfileViewModel by viewModels()
+ 
+     override fun inflateBinding(
+         inflater: LayoutInflater,
+         container: ViewGroup?
+     ): FragmentProfileBinding = FragmentProfileBinding.inflate(inflater, container, false)
+ 
++    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { result ->
++        if (result != null) {
++            viewModel.pickedImage = result
++            grantReadPermissionToUri(requireContext(), result)
++            Glide
++                .with(requireContext())
++                .load(result)
++                .centerCrop()
++                .placeholder(R.drawable.man)
++                .into(binding.profileAvatar)
++        }
++    }
++
+     override fun initViews() {
+-        TODO("Not yet implemented")
++        (activity as? MainActivity)?.apply {
++            isShowHeader(true)
++            setOnHeaderBack { findNavController().popBackStack() }
++            setHeaderTitle(applicationContext.getString(R.string.password))
++        }
+     }
+ 
+     override fun initActions() {
+-        TODO("Not yet implemented")
++        binding.profileImagePick.setOnClickListener {
++            pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
++        }
++        binding.profileChangePassword.setOnClickListener {
++            ChangePasswordBottomSheet().shows(parentFragmentManager)
++        }
++
++        binding.profileChange.setOnClickListener {
++            viewModel.updateUserData(binding.profileUsername.text.toString())
++        }
+     }
+ 
+     override fun intiData() {
+-        TODO("Not yet implemented")
++        viewModel.fetchUserData()
+     }
+ 
+     override fun obverseFromViewModel(scope: LifecycleCoroutineScope) {
+-        TODO("Not yet implemented")
++        scope.launch {
++            viewModel.userData.collect {
++                Glide
++                    .with(requireContext())
++                    .load(it.image)
++                    .centerCrop()
++                    .placeholder(R.drawable.man)
++                    .into(binding.profileAvatar)
++
++                binding.profileUsername.setText(it.username)
++                binding.profileEmail.setText(it.email)
++            }
++        }
++        scope.launch {
++            viewModel.singleEvent.collect { state ->
++                when (state) {
++                    is State.Error -> TODO()
++                    State.Idle -> TODO()
++                    State.Loading -> TODO()
++                    State.Success -> {
++                        ChangePasswordBottomSheet().shows(parentFragmentManager)
++                    }
++                }
++            }
++        }
+     }
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/profile/ProfileViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/profile/ProfileViewModel.kt b/app/src/main/java/com/parking/parkingapp/view/profile/ProfileViewModel.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/profile/ProfileViewModel.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/profile/ProfileViewModel.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -1,6 +1,52 @@
+ package com.parking.parkingapp.view.profile
+ 
++import android.net.Uri
++import androidx.lifecycle.viewModelScope
++import com.google.firebase.auth.FirebaseUser
+ import com.parking.parkingapp.common.BaseViewModel
++import com.parking.parkingapp.common.State
++import com.parking.parkingapp.common.success
++import com.parking.parkingapp.data.repository.AuthRepository
++import dagger.hilt.android.lifecycle.HiltViewModel
++import kotlinx.coroutines.NonCancellable
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.asStateFlow
++import kotlinx.coroutines.launch
++import javax.inject.Inject
++
++@HiltViewModel
++class ProfileViewModel @Inject constructor(
++    private val authRepository: AuthRepository
++) : BaseViewModel() {
++    var pickedImage: Uri? = null
+ 
+-class ProfileViewModel: BaseViewModel() {
++    inner class UserProfile(
++        val image: Uri? = null,
++        val username: String? = null,
++        val email: String? = null,
++    )
++
++    private val _userData: MutableStateFlow<UserProfile> = MutableStateFlow(UserProfile())
++    val userData = _userData.asStateFlow()
++    fun fetchUserData() = viewModelScope.launch {
++        authRepository.getCurrentUser<FirebaseUser>().success { fuser ->
++            fuser?.let { user ->
++                _userData.value = UserProfile(
++                    user.photoUrl,
++                    user.displayName,
++                    user.email
++                )
++            }
++        }
++    }
++
++    fun updateUserData(username: String?) = viewModelScope.launch(NonCancellable) {
++        authRepository.updateProfile(
++            name = username,
++            email = null,
++            image = pickedImage.toString()
++        ).success {
++            sendSingleEvent(State.Success)
++        }
++    }
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/parking/parkingapp/view/splash/SplashScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/parking/parkingapp/view/splash/SplashScreen.kt b/app/src/main/java/com/parking/parkingapp/view/splash/SplashScreen.kt
+--- a/app/src/main/java/com/parking/parkingapp/view/splash/SplashScreen.kt	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/java/com/parking/parkingapp/view/splash/SplashScreen.kt	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -12,6 +12,7 @@
+ import com.parking.parkingapp.common.State
+ import com.parking.parkingapp.databinding.FragmentSplashBinding
+ import com.parking.parkingapp.view.BaseFragment
++import com.parking.parkingapp.view.MainActivity
+ import dagger.hilt.android.AndroidEntryPoint
+ import kotlinx.coroutines.delay
+ import kotlinx.coroutines.launch
+@@ -22,7 +23,9 @@
+     private val viewModel: SplashViewModel by viewModels()
+ 
+     override fun initViews() {
+-        //suppress
++        (activity as? MainActivity)?.apply {
++            isShowHeader(false)
++        }
+     }
+ 
+     override fun initActions() {
+Index: app/src/main/res/anim/slide_down.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/anim/slide_down.xml b/app/src/main/res/anim/slide_down.xml
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/res/anim/slide_down.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,7 @@
++<set xmlns:android="http://schemas.android.com/apk/res/android">
++    <translate
++        android:duration="@android:integer/config_shortAnimTime"
++        android:fromYDelta="0%"
++        android:interpolator="@android:anim/accelerate_interpolator"
++        android:toYDelta="100%" />
++</set>
+\ No newline at end of file
+Index: app/src/main/res/anim/slide_up.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/anim/slide_up.xml b/app/src/main/res/anim/slide_up.xml
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/res/anim/slide_up.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,7 @@
++<set xmlns:android="http://schemas.android.com/apk/res/android">
++    <translate
++        android:duration="@android:integer/config_shortAnimTime"
++        android:fromYDelta="100%"
++        android:interpolator="@android:anim/accelerate_interpolator"
++        android:toYDelta="0%" />
++</set>
+\ No newline at end of file
+Index: app/src/main/res/drawable/rounded_22dp.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/drawable/rounded_22dp.xml b/app/src/main/res/drawable/rounded_22dp.xml
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/res/drawable/rounded_22dp.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android">
++    <solid android:color="@color/white" />
++    <corners android:radius="22dp" />
++</shape>
+\ No newline at end of file
+Index: app/src/main/res/drawable/top_rounded_shape.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/drawable/top_rounded_shape.xml b/app/src/main/res/drawable/top_rounded_shape.xml
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/res/drawable/top_rounded_shape.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android">
++    <solid android:color="@color/white" />
++    <corners
++        android:topLeftRadius="22dp"
++        android:topRightRadius="22dp" />
++</shape>
+\ No newline at end of file
+Index: app/src/main/res/layout/activity_main.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_main.xml b/app/src/main/res/layout/activity_main.xml
+--- a/app/src/main/res/layout/activity_main.xml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/res/layout/activity_main.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -18,6 +18,7 @@
+             android:visibility="gone">
+ 
+             <LinearLayout
++                android:id="@+id/header_back"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+@@ -40,6 +41,7 @@
+             </LinearLayout>
+ 
+             <TextView
++                android:id="@+id/header_title"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="center"
+Index: app/src/main/res/layout/bottomsheet_change_password.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/bottomsheet_change_password.xml b/app/src/main/res/layout/bottomsheet_change_password.xml
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/res/layout/bottomsheet_change_password.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,168 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:background="@drawable/top_rounded_shape"
++    android:clipChildren="false"
++    android:clipToPadding="false"
++    android:divider="@drawable/divider_vertical"
++    android:elevation="20dp"
++    android:orientation="vertical"
++    android:padding="20dp"
++    android:showDividers="middle"
++    tools:ignore="SpUsage">
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:text="Change Password"
++        android:textAlignment="center"
++        android:textColor="@color/black"
++        android:textSize="24sp"
++        android:textStyle="bold" />
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:text="Old password"
++        android:textColor="@color/black"
++        android:textSize="16sp" />
++
++    <androidx.constraintlayout.widget.ConstraintLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content">
++
++        <EditText
++            android:id="@+id/change_edt_old_password"
++            style="@style/EditTextWithOutline"
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:autofillHints=""
++            android:inputType="textPassword"
++            app:layout_constraintBottom_toBottomOf="parent"
++            app:layout_constraintLeft_toLeftOf="parent"
++            app:layout_constraintRight_toRightOf="parent"
++            app:layout_constraintTop_toTopOf="parent"
++            tools:ignore="LabelFor" />
++
++        <ImageView
++            android:id="@+id/change_eye_button_old"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginEnd="20dp"
++            android:src="@drawable/eye_on_fill"
++            app:layout_constraintBottom_toBottomOf="@id/change_edt_old_password"
++            app:layout_constraintEnd_toEndOf="@id/change_edt_old_password"
++            app:layout_constraintTop_toTopOf="@id/change_edt_old_password"
++            tools:ignore="ContentDescription" />
++    </androidx.constraintlayout.widget.ConstraintLayout>
++
++    <TextView
++        android:id="@+id/profile_error_old_password"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="Wrong"
++        android:textColor="@color/red"
++        android:translationY="-10dp"
++        android:visibility="gone" />
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:text="New password"
++        android:textColor="@color/black"
++        android:textSize="16sp" />
++
++    <androidx.constraintlayout.widget.ConstraintLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content">
++
++        <EditText
++            android:id="@+id/change_edt_new_password"
++            style="@style/EditTextWithOutline"
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:autofillHints=""
++            android:inputType="textPassword"
++            app:layout_constraintBottom_toBottomOf="parent"
++            app:layout_constraintLeft_toLeftOf="parent"
++            app:layout_constraintRight_toRightOf="parent"
++            app:layout_constraintTop_toTopOf="parent"
++            tools:ignore="LabelFor" />
++
++        <ImageView
++            android:id="@+id/change_eye_button_new"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginEnd="20dp"
++            android:src="@drawable/eye_on_fill"
++            app:layout_constraintBottom_toBottomOf="@id/change_edt_new_password"
++            app:layout_constraintEnd_toEndOf="@id/change_edt_new_password"
++            app:layout_constraintTop_toTopOf="@id/change_edt_new_password"
++            tools:ignore="ContentDescription" />
++    </androidx.constraintlayout.widget.ConstraintLayout>
++
++    <TextView
++        android:id="@+id/profile_error_new_password"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="Wrong"
++        android:textColor="@color/red"
++        android:translationY="-10dp"
++        android:visibility="gone" />
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:text="Retype new password"
++        android:textColor="@color/black"
++        android:textSize="16sp" />
++
++    <androidx.constraintlayout.widget.ConstraintLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content">
++
++        <EditText
++            android:id="@+id/change_edt_retype_password"
++            style="@style/EditTextWithOutline"
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:autofillHints=""
++            android:inputType="textPassword"
++            app:layout_constraintBottom_toBottomOf="parent"
++            app:layout_constraintLeft_toLeftOf="parent"
++            app:layout_constraintRight_toRightOf="parent"
++            app:layout_constraintTop_toTopOf="parent"
++            tools:ignore="LabelFor" />
++
++        <ImageView
++            android:id="@+id/change_eye_button_retype"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginEnd="20dp"
++            android:src="@drawable/eye_on_fill"
++            app:layout_constraintBottom_toBottomOf="@id/change_edt_retype_password"
++            app:layout_constraintEnd_toEndOf="@id/change_edt_retype_password"
++            app:layout_constraintTop_toTopOf="@id/change_edt_retype_password"
++            tools:ignore="ContentDescription" />
++    </androidx.constraintlayout.widget.ConstraintLayout>
++
++    <TextView
++        android:id="@+id/profile_error_retype_password"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="Wrong"
++        android:textColor="@color/red"
++        android:translationY="-10dp"
++        android:visibility="gone" />
++
++    <androidx.appcompat.widget.AppCompatButton
++        android:id="@+id/login_btn"
++        style="@style/BlackFilledButton"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:backgroundTint="@color/blue"
++        android:text="Save Change" />
++</LinearLayout>
+\ No newline at end of file
+Index: app/src/main/res/layout/dialog_profile_success.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/dialog_profile_success.xml b/app/src/main/res/layout/dialog_profile_success.xml
+new file mode 100644
+--- /dev/null	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
++++ b/app/src/main/res/layout/dialog_profile_success.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -0,0 +1,37 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:layout_margin="24dp"
++    android:background="@drawable/rounded_22dp"
++    android:clipChildren="false"
++    android:clipToPadding="false"
++    android:divider="@drawable/divider_vertical"
++    android:elevation="20dp"
++    android:gravity="center"
++    android:orientation="vertical"
++    android:padding="20dp"
++    android:showDividers="middle">
++
++    <ImageView
++        android:layout_width="60dp"
++        android:layout_height="60dp"
++        android:src="@drawable/check"
++        tools:ignore="ContentDescription" />
++
++    <TextView
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="Success"
++        android:textColor="@color/black"
++        android:textSize="28sp"
++        android:textStyle="bold" />
++
++    <androidx.appcompat.widget.AppCompatButton
++        android:id="@+id/profile_success_change"
++        style="@style/BlackFilledButton"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:text="Ok" />
++</LinearLayout>
+\ No newline at end of file
+Index: app/src/main/res/layout/fragment_drawer_menu.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/fragment_drawer_menu.xml b/app/src/main/res/layout/fragment_drawer_menu.xml
+--- a/app/src/main/res/layout/fragment_drawer_menu.xml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/res/layout/fragment_drawer_menu.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -47,7 +47,7 @@
+         tools:visibility="visible">
+ 
+         <de.hdodenhof.circleimageview.CircleImageView
+-            android:id="@+id/drawer_avatar"
++            android:id="@+id/profile_avatar"
+             android:layout_width="80dp"
+             android:layout_height="80dp"
+             android:src="@color/black" />
+@@ -57,6 +57,7 @@
+             android:layout_height="20dp" />
+ 
+         <LinearLayout
++            android:id="@+id/drawer_edit_profile"
+             android:layout_height="wrap_content"
+             android:background="@drawable/white_rounded_outline"
+             android:gravity="center"
+Index: app/src/main/res/layout/fragment_login.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/fragment_login.xml b/app/src/main/res/layout/fragment_login.xml
+--- a/app/src/main/res/layout/fragment_login.xml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/res/layout/fragment_login.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -47,6 +47,15 @@
+             android:inputType="textEmailSubject"
+             tools:ignore="LabelFor" />
+ 
++        <TextView
++            android:id="@+id/login_error_email"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:text="Wrong"
++            android:textColor="@color/red"
++            android:translationY="-10dp"
++            android:visibility="gone" />
++
+         <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+@@ -84,13 +93,22 @@
+                 tools:ignore="ContentDescription" />
+         </androidx.constraintlayout.widget.ConstraintLayout>
+ 
+-
+         <TextView
+-            android:id="@+id/login_text_error"
++            android:id="@+id/login_error_password"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+-            android:layout_gravity="center"
+-            android:text="@string/username_or_password_incorrect"
++            android:text="Wrong"
++            android:textColor="@color/red"
++            android:translationY="-10dp"
++            android:visibility="gone" />
++
++
++        <TextView
++            android:id="@+id/login_error_common"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:text="Wrong"
++            android:textAlignment="center"
+             android:textColor="@color/red"
+             android:visibility="gone" />
+ 
+Index: app/src/main/res/layout/fragment_profile.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/fragment_profile.xml b/app/src/main/res/layout/fragment_profile.xml
+--- a/app/src/main/res/layout/fragment_profile.xml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/res/layout/fragment_profile.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -6,14 +6,17 @@
+     android:gravity="center_horizontal"
+     android:orientation="vertical"
+     android:padding="20dp"
++    android:divider="@drawable/divider_vertical"
++    android:showDividers="middle"
+     tools:context=".view.profile.ProfileFragment">
+ 
+     <FrameLayout
++        android:id="@+id/profile_image_pick"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content">
+ 
+         <de.hdodenhof.circleimageview.CircleImageView
+-            android:id="@+id/drawer_avatar"
++            android:id="@+id/profile_avatar"
+             android:layout_width="100dp"
+             android:layout_height="100dp"
+             android:src="@drawable/man" />
+@@ -32,4 +35,83 @@
+             android:src="@drawable/edit" />
+     </FrameLayout>
+ 
++    <LinearLayout
++        android:id="@+id/profile_change_password"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:background="@drawable/white_rounded_outline"
++        android:backgroundTint="@color/red"
++        android:gravity="center"
++        android:paddingHorizontal="10dp"
++        android:paddingVertical="5dp">
++
++        <TextView
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:text="Change Password"
++            android:textColor="@color/white" />
++
++        <Space
++            android:layout_width="10dp"
++            android:layout_height="wrap_content" />
++
++        <ImageView
++            android:layout_width="18dp"
++            android:layout_height="18dp"
++            android:src="@drawable/lock" />
++    </LinearLayout>
++
++
++    <View
++        android:layout_width="match_parent"
++        android:layout_height="1dp"
++        android:layout_marginVertical="20dp"
++        android:background="@color/gray" />
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:text="Username"
++        android:textColor="@color/black"
++        android:textSize="16sp" />
++
++    <EditText
++        android:id="@+id/profile_username"
++        style="@style/EditTextWithOutline"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:autofillHints=""
++        android:inputType="textEmailSubject"
++        tools:ignore="LabelFor" />
++
++    <TextView
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:text="Your Email"
++        android:textColor="@color/black"
++        android:textSize="16sp" />
++
++    <EditText
++        android:enabled="false"
++        android:id="@+id/profile_email"
++        style="@style/EditTextWithOutline"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:autofillHints=""
++        android:inputType="textEmailSubject"
++        tools:ignore="LabelFor" />
++
++    <View
++        android:layout_width="match_parent"
++        android:layout_height="1dp"
++        android:layout_marginVertical="20dp"
++        android:background="@color/gray" />
++
++    <androidx.appcompat.widget.AppCompatButton
++        android:id="@+id/profile_change"
++        style="@style/BlackFilledButton"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:backgroundTint="@color/blue"
++        android:text="Save Change" />
+ </LinearLayout>
+\ No newline at end of file
+Index: app/src/main/res/layout/fragment_register.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/fragment_register.xml b/app/src/main/res/layout/fragment_register.xml
+--- a/app/src/main/res/layout/fragment_register.xml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/res/layout/fragment_register.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -58,6 +58,15 @@
+             android:inputType="textEmailSubject"
+             tools:ignore="LabelFor" />
+ 
++        <TextView
++            android:id="@+id/register_error_email"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:text="Wrong"
++            android:textColor="@color/red"
++            android:translationY="-10dp"
++            android:visibility="gone" />
++
+         <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+@@ -95,6 +104,15 @@
+                 tools:ignore="ContentDescription" />
+         </androidx.constraintlayout.widget.ConstraintLayout>
+ 
++        <TextView
++            android:id="@+id/register_error_password"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:text="Wrong"
++            android:textColor="@color/red"
++            android:translationY="-10dp"
++            android:visibility="gone" />
++
+         <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+@@ -133,7 +151,16 @@
+         </androidx.constraintlayout.widget.ConstraintLayout>
+ 
+         <TextView
+-            android:id="@+id/register_text_error"
++            android:id="@+id/register_error_retype_password"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:text="Wrong"
++            android:textColor="@color/red"
++            android:translationY="-10dp"
++            android:visibility="gone" />
++
++        <TextView
++            android:id="@+id/register_error_common"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center"
+Index: app/src/main/res/navigation/nav_graph.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/navigation/nav_graph.xml b/app/src/main/res/navigation/nav_graph.xml
+--- a/app/src/main/res/navigation/nav_graph.xml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/res/navigation/nav_graph.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -56,4 +56,9 @@
+         android:id="@+id/mapboxFragment"
+         android:name="com.parking.parkingapp.view.map.MapboxFragment"
+         android:label="MapboxFragment" />
++    <fragment
++        android:id="@+id/profileFragment"
++        android:name="com.parking.parkingapp.view.profile.ProfileFragment"
++        android:label="fragment_profile"
++        tools:layout="@layout/fragment_profile" />
+ </navigation>
+\ No newline at end of file
+Index: app/src/main/res/values/colors.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/values/colors.xml b/app/src/main/res/values/colors.xml
+--- a/app/src/main/res/values/colors.xml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/res/values/colors.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -15,4 +15,5 @@
+     <color name="stroke">#D3D3D3</color>
+     <color name="box_fill">#EDEDED</color>
+     <color name="gray_trans">#59000000</color>
++    <color name="colorTransparent">#00FF0000</color>
+ </resources>
+\ No newline at end of file
+Index: app/src/main/res/values/styles.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/values/styles.xml b/app/src/main/res/values/styles.xml
+--- a/app/src/main/res/values/styles.xml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/app/src/main/res/values/styles.xml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -7,6 +7,7 @@
+         <item name="android:minHeight">60dp</item>
+         <item name="android:textColor">@android:color/black</item>
+         <item name="android:textColorHint">@android:color/darker_gray</item>
++        <item name="android:textCursorDrawable">@null</item>
+     </style>
+ 
+     <style name="EditTextWhite" parent="Widget.AppCompat.EditText">
+@@ -37,4 +38,9 @@
+         <item name="android:backgroundTint">@color/white</item>
+         <item name="android:src">@drawable/white_rounded_outline</item>
+     </style>
++
++    <style name="BottomSheetDialogAnim">
++        <item name="android:windowEnterAnimation">@anim/slide_up</item>
++        <item name="android:windowExitAnimation">@anim/slide_down</item>
++    </style>
+ </resources>
+\ No newline at end of file
+Index: gradle/libs.versions.toml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+--- a/gradle/libs.versions.toml	(revision c613ad611ce825ba1d54d903716560db28a37d38)
++++ b/gradle/libs.versions.toml	(revision e055891467d1c8eb37d545ea31a5829550059fa2)
+@@ -27,6 +27,7 @@
+ mapbox-autocomplete = "2.5.0"
+ mapbox-navigation = "3.5.0-rc.1"
+ circle-image = "3.1.0"
++glide = "4.16.0"
+ 
+ [libraries]
+ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+@@ -58,6 +59,7 @@
+ mapbox-map = { group = "com.mapbox.navigationcore", name = "ui-maps", version.ref = "mapbox-navigation" }
+ mapbox-autocomplete = { group = "com.mapbox.search", name = "place-autocomplete", version.ref = "mapbox-autocomplete" }
+ circle-imageview = { group = "de.hdodenhof", name = "circleimageview", version.ref = "circle-image" }
++image-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+ 
+ [plugins]
+ androidApplication = { id = "com.android.application", version.ref = "agp" }
+diff --git a/app/src/main/res/drawable/check.png b/app/src/main/res/drawable/check.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..7ebd9addedb8271b23e7767abf3a67ce35d5f1e1
+GIT binary patch
+literal 25407
+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
+CfI-Lr
+

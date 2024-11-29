@@ -28,7 +28,7 @@ class RegisterViewModel @Inject constructor(
         password: String,
         retypePassword: String,
     ) = viewModelScope.launch() {
-        sendSingleEvent(State.Loading)
+        sendSingleEvent(State.Loading())
         delay(200L)
         val emailValidateResult = validateEmailUseCase(email)
         val passwordValidateResult = validatePasswordUseCase(password)

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/park_info_container"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:layout_marginVertical="15dp"
+    android:layout_marginHorizontal="10dp"
+    android:background="@drawable/white_rounded_outline"
+    android:elevation="4dp"
+    android:padding="10dp">
+
+    <ImageView
+        android:id="@+id/my_park_image"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/parking_placeholder"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/my_park_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="5dp"
+        android:text="Bai do Long Thanh"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@id/my_park_status"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintBottom_toTopOf="@id/my_park_address"
+        app:layout_constraintStart_toEndOf="@id/my_park_image"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/my_park_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/not_checkin_yet"
+        android:textColor="@color/gray"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/my_park_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/my_park_name" />
+
+    <TextView
+        android:id="@+id/my_park_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="Hanoi, VietNam"
+        android:textSize="14sp"
+        app:layout_constraintStart_toEndOf="@id/my_park_image"
+        app:layout_constraintTop_toBottomOf="@id/my_park_name"
+        tools:ignore="SmallSp" />
+
+    <ImageView
+        android:id="@+id/my_park_coin"
+        android:layout_width="@dimen/sub_icon_park_card"
+        android:layout_height="@dimen/sub_icon_park_card"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/coin"
+        app:layout_constraintBottom_toBottomOf="@id/my_park_price"
+        app:layout_constraintStart_toEndOf="@id/my_park_image"
+        app:layout_constraintTop_toTopOf="@id/my_park_price"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/my_park_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="3dp"
+        android:text="500.000d"
+        android:textColor="@color/black"
+        android:textSize="@dimen/sub_string_park_card"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/my_park_dot1"
+        app:layout_constraintStart_toEndOf="@id/my_park_coin"
+        app:layout_constraintTop_toBottomOf="@id/my_park_address"
+        tools:ignore="SmallSp" />
+
+    <ImageView
+        android:id="@+id/my_park_dot1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="3dp"
+        android:src="@drawable/dot"
+        app:layout_constraintBottom_toBottomOf="@id/my_park_price"
+        app:layout_constraintEnd_toStartOf="@id/my_park_time_icon"
+        app:layout_constraintStart_toEndOf="@id/my_park_price"
+        app:layout_constraintTop_toTopOf="@id/my_park_price"
+        tools:ignore="ContentDescription" />
+
+    <ImageView
+        android:id="@+id/my_park_time_icon"
+        android:layout_width="@dimen/sub_icon_park_card"
+        android:layout_height="@dimen/sub_icon_park_card"
+        android:src="@drawable/time"
+        app:layout_constraintBottom_toBottomOf="@id/my_park_price"
+        app:layout_constraintEnd_toStartOf="@id/my_park_time"
+        app:layout_constraintStart_toEndOf="@id/my_park_dot1"
+        app:layout_constraintTop_toTopOf="@id/my_park_price"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/my_park_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="3dp"
+        android:text="10:00-13:00"
+        android:textColor="@color/black"
+        android:textSize="@dimen/sub_string_park_card"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/my_park_time_icon"
+        app:layout_constraintEnd_toStartOf="@id/my_park_dot2"
+        app:layout_constraintTop_toBottomOf="@id/my_park_address"
+        tools:ignore="SmallSp" />
+
+    <ImageView
+        android:id="@+id/my_park_dot2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="3dp"
+        android:src="@drawable/dot"
+        app:layout_constraintBottom_toBottomOf="@id/my_park_price"
+        app:layout_constraintEnd_toStartOf="@id/my_park_date_icon"
+        app:layout_constraintStart_toEndOf="@id/my_park_time"
+        app:layout_constraintTop_toTopOf="@id/my_park_price"
+        tools:ignore="ContentDescription" />
+
+    <ImageView
+        android:id="@+id/my_park_date_icon"
+        android:layout_width="@dimen/sub_icon_park_card"
+        android:layout_height="@dimen/sub_icon_park_card"
+        android:src="@drawable/calendar"
+        app:layout_constraintBottom_toBottomOf="@id/my_park_price"
+        app:layout_constraintEnd_toStartOf="@id/my_park_date"
+        app:layout_constraintStart_toEndOf="@id/my_park_dot2"
+        app:layout_constraintTop_toTopOf="@id/my_park_price"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/my_park_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="3dp"
+        android:text="22/11/20224"
+        android:textColor="@color/black"
+        android:textSize="@dimen/sub_string_park_card"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/my_park_date_icon"
+        app:layout_constraintTop_toBottomOf="@id/my_park_address"
+        tools:ignore="SmallSp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

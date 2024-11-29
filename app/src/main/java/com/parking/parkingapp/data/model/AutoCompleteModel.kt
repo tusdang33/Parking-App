@@ -18,3 +18,12 @@ fun Feature.toAutoCompleteModel(): AutoCompleteModel {
         this.properties.place_formatted
     )
 }
+
+fun ParkModel.toAutoCompleteModel(): AutoCompleteModel {
+    return AutoCompleteModel(
+        this.id,
+        Point.fromLngLat(this.long, this.lat),
+        this.name,
+        this.address
+    )
+}

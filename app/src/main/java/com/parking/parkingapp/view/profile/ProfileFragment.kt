@@ -9,7 +9,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.parking.parkingapp.R
 import com.parking.parkingapp.common.State
@@ -47,7 +46,7 @@ class ProfileFragment: BaseFragment<FragmentProfileBinding>() {
     override fun initViews() {
         (activity as? MainActivity)?.apply {
             isShowHeader(true)
-            setOnHeaderBack { findNavController().popBackStack() }
+            setOnHeaderBack()
             setHeaderTitle(applicationContext.getString(R.string.password))
         }
     }
@@ -86,7 +85,7 @@ class ProfileFragment: BaseFragment<FragmentProfileBinding>() {
         binding.profileChangePassword.setOnClickListener {
             ChangePasswordBottomSheet().apply {
                 onSuccess = {
-                    ChangeProfileSuccessDialog().shows(parentFragmentManager)
+                    SuccessDialog().shows(parentFragmentManager)
                 }
                 email = viewModel.userData.value.email
             }.shows(parentFragmentManager)
@@ -137,13 +136,13 @@ class ProfileFragment: BaseFragment<FragmentProfileBinding>() {
                         loadingVisible(false)
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         loadingVisible(true)
                     }
 
                     is State.Success -> {
                         loadingVisible(false)
-                        ChangeProfileSuccessDialog().shows(parentFragmentManager)
+                        SuccessDialog().shows(parentFragmentManager)
                     }
                 }
             }

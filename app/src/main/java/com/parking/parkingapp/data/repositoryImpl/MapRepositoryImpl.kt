@@ -22,14 +22,11 @@ class MapRepositoryImpl(
                 accessToken = APIConst.MAP_API_KEY
             )
             if (response.isSuccessful) {
-                Log.e("DIRECTION", "getSearchSuggestion: ")
                 emit(response.body()?.features?.map { it.toAutoCompleteModel() })
             } else {
-                Log.e("DIRECTION", "getSearchSuggestion: ${response.errorBody()} ")
                 emit(null)
             }
         } catch (e: Exception) {
-            Log.e("DIRECTION", "getSearchSuggestion: ${e.message} ")
             emit(null)
         }
     }

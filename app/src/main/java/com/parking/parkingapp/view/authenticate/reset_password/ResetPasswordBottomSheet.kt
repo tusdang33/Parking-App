@@ -34,11 +34,11 @@ class ResetPasswordBottomSheet : BaseDialog<FragmentResetPasswordDialogBinding>(
     override fun initView() {
         lifecycleScope.launch {
             viewModel.singleEvent.collect { state ->
-                loadingVisible(state == State.Loading)
+                loadingVisible(state is State.Loading)
                 when (state) {
                     is State.Error -> handleResetError(state.error as ResetPasswordError)
                     State.Idle -> TODO()
-                    State.Loading -> loadingVisible(true)
+                    is State.Loading -> loadingVisible(true)
                     is State.Success -> {
                         dismiss()
                         onSuccess?.invoke()

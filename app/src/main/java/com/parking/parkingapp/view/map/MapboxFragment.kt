@@ -1,11 +1,12 @@
 package com.parking.parkingapp.view.map
 
-import android.Manifest
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
+import android.app.Activity.RESULT_OK
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
+import android.graphics.Typeface
+import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -15,12 +16,22 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import androidx.core.app.ActivityCompat
+import android.view.animation.AnimationUtils
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.google.gson.Gson
+import com.google.gson.JsonNull
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.core.constants.Constants
@@ -30,6 +41,7 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.ImageHolder
+import com.mapbox.maps.LayerPosition
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
@@ -42,6 +54,9 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.annotation.AnnotationConfig
 import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.OnPointAnnotationClickListener
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.attribution.attribution
@@ -58,14 +73,22 @@ import com.mapbox.navigation.core.directions.session.RoutesObserver
 import com.mapbox.navigation.core.lifecycle.MapboxNavigationObserver
 import com.mapbox.navigation.core.lifecycle.requireMapboxNavigation
 import com.parking.parkingapp.R
-import com.parking.parkingapp.common.BDX
+import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.common.hideKeyboard
+import com.parking.parkingapp.data.model.MyRentedPark
+import com.parking.parkingapp.data.model.ParkModel
 import com.parking.parkingapp.databinding.FragmentMapboxBinding
 import com.parking.parkingapp.view.BaseFragment
 import com.parking.parkingapp.view.MainActivity
+import com.parking.parkingapp.view.map.model.SmartParkModel
+import com.parking.parkingapp.view.map.model.SmartPrioritize
 import com.parking.parkingapp.view.map.ui.PDivierItemDecoration
 import com.parking.parkingapp.view.map.ui.ParkingMarker
+import com.parking.parkingapp.view.my_parking.MyParkDetailFragment
+import com.parking.parkingapp.view.park.ParkDetailFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -73,14 +96,18 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
     private val viewModel: MapViewModel by viewModels()
 
     companion object {
-        private const val ZOOM_15F = 15.0
-        private const val ZOOM_10F = 10.0
+        private const val ZOOM_LEVEL1 = 13.0
+        private const val ZOOM_LEVEL2 = 11.0
+        private const val ZOOM_LEVEL3 = 14.0
         private val DEFAULT_LOCATION = Point.fromLngLat(
             105.83592789795485,
             21.029691926637206
         )
         const val ROUTE_FOUND_LAYER_ID = "route-found-layer-id"
         const val ROUTE_FOUND_SOURCE_ID = "route-found-source-id"
+        const val ROAD_LAYER = "road-label"
+        const val SYMBOL_LAYER_ID = "symbol_layer_id"
+        const val SYMBOL_SOURCE_ID = "symbol_source_id"
         const val LOCATION_PERMISSION_REQUEST_CODE = 113
 
     }
@@ -89,8 +116,24 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         PlaceAutocompleteAdapter()
     }
 
-    private var currentLocation: Point? = null
+    private var currentLocation: Point = DEFAULT_LOCATION
     private var markedLocation: Point? = null
+    private var currentShowingPark: ParkModel? = null
+    private var pointAnnotationManager: PointAnnotationManager? = null
+    private var isRouteHasBeenDraw = false
+    private var currentPriorityBlockHeight: Int = 0
+
+    private val gpsRequestLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            Toast.makeText(requireContext(), getString(R.string.gps_is_on), Toast.LENGTH_SHORT)
+                .show()
+        } else {
+            Toast.makeText(requireContext(), getString(R.string.gps_is_off), Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
 
     override fun inflateBinding(
         inflater: LayoutInflater,
@@ -110,20 +153,63 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
 
             override fun onDetached(mapboxNavigation: MapboxNavigation) {
                 mapboxNavigation.unregisterRoutesObserver(routesObserver)
+
             }
         }
     )
 
     override fun initViews() {
-        checkLocationPermission()
+        checkLocationPermission(requireContext(), requireActivity())
+        requestGPS(
+            requireActivity(),
+            gpsRequestLauncher
+        )
         (activity as? MainActivity)?.apply {
             isShowHeader(false)
         }
+        parentFragment?.setFragmentResultListener(MapboxFragment::class.java.name) { _, bundle ->
+            if (bundle.getBoolean(ParkDetailFragment::class.java.name)) {
+                if (currentShowingPark == null) return@setFragmentResultListener
+                direction(
+                    currentLocation,
+                    Point.fromLngLat(currentShowingPark!!.long, currentShowingPark!!.lat)
+                )
+            }
+            (bundle.getParcelable(MyParkDetailFragment::class.java.name) as? MyRentedPark)?.let {
+                direction(
+                    currentLocation,
+                    Point.fromLngLat(it.park.long, it.park.lat)
+                )
+            }
+        }
+        binding.mapView.mapboxMap.apply {
+            loadStyle(
+                style(Style.MAPBOX_STREETS) {
+                    +lineLayerPreset(ROUTE_FOUND_LAYER_ID, ROUTE_FOUND_SOURCE_ID)
+                    +geoJsonSource(ROUTE_FOUND_SOURCE_ID)
+                }
+            ) {
+                it.apply {
+                    moveStyleLayer(ROUTE_FOUND_LAYER_ID, LayerPosition(null, ROAD_LAYER, null))
+                }
+                updateCamera(currentLocation)
+                subscribeCameraChanged {
+                    viewModel.getParkInRange(cameraState.center)
+                }
+            }
+        }
         binding.mapView.apply {
+            pointAnnotationManager = annotations.createPointAnnotationManager(
+                AnnotationConfig(
+                    layerId = SYMBOL_LAYER_ID,
+                    sourceId = SYMBOL_SOURCE_ID
+                )
+            )
             compass.enabled = false
             logo.enabled = false
             attribution.enabled = false
             scalebar.position = Gravity.BOTTOM or Gravity.START
+            scalebar.isMetricUnits = true
             location.apply {
                 locationPuck = LocationPuck2D(
                     topImage = ImageHolder.Companion.from(R.drawable.location_puck),
@@ -141,22 +227,19 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                     }.toJson()
                 )
                 enabled = true
+                layerAbove = SYMBOL_LAYER_ID
                 addOnIndicatorPositionChangedListener { position ->
-                    currentLocation = position
+                    if (currentLocation == DEFAULT_LOCATION) {
+                        currentLocation = position
+                    } else if (currentLocation.distanceTo(position) > 5) {
+                        updateRidingRoute(position)
+                        currentLocation = position
+                    }
                 }
             }
+
         }
-        binding.mapView.mapboxMap.apply {
-            loadStyle(
-                style(Style.MAPBOX_STREETS) {
-                    +lineLayerPreset(ROUTE_FOUND_LAYER_ID, ROUTE_FOUND_SOURCE_ID)
-                    +geoJsonSource(ROUTE_FOUND_SOURCE_ID)
-                }
-            ) {
-                dumbMarker()
-                updateCamera(currentLocation ?: DEFAULT_LOCATION)
-            }
-        }
+
 
         binding.mapSuggestRcv.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -168,36 +251,6 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         }
     }
 
-    private fun dumbMarker() {
-        addAnnotationToMap(
-            Point.fromLngLat(BDX.BDX1.long, BDX.BDX1.lat),
-            createBitmapFromView(
-                ParkingMarker.Builder(requireContext())
-                    .slotStatus(ParkingMarker.Companion.SLOT.S100)
-                    .suggestStatus(ParkingMarker.Companion.STATUS.GOOD)
-                    .build()
-            )
-        )
-        addAnnotationToMap(
-            Point.fromLngLat(BDX.BDX2.long, BDX.BDX2.lat),
-            createBitmapFromView(
-                ParkingMarker.Builder(requireContext())
-                    .slotStatus(ParkingMarker.Companion.SLOT.S0)
-                    .suggestStatus(ParkingMarker.Companion.STATUS.BAD)
-                    .build()
-            )
-        )
-        addAnnotationToMap(
-            Point.fromLngLat(BDX.BDX3.long, BDX.BDX3.lat),
-            createBitmapFromView(
-                ParkingMarker.Builder(requireContext())
-                    .slotStatus(ParkingMarker.Companion.SLOT.S50)
-                    .suggestStatus(ParkingMarker.Companion.STATUS.NORMAL)
-                    .build()
-            )
-        )
-    }
-
     override fun initActions() {
         binding.mapMenu.setOnClickListener {
             getDrawerMenu()?.open()
@@ -206,9 +259,9 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
             if (binding.mapSuggestRcv.visibility == View.VISIBLE) {
                 binding.mapSuggestRcv.visibility = View.GONE
             } else {
-                if (currentLocation == null || markedLocation == null) return@setOnClickListener
+                if (markedLocation == null) return@setOnClickListener
                 direction(
-                    currentLocation!!, markedLocation!!
+                    currentLocation, markedLocation!!
                 )
             }
             binding.mapSearchEdt.setText("")
@@ -216,41 +269,37 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
             hideKeyboard()
         }
         placeAutocompleteAdapter.apply {
-            setOnItemClick { point ->
+            setOnItemClick { id, point ->
+                binding.mapSearchEdt.setText("")
                 markedLocation = point
                 transformRightIcon(true)
+                handleOnLocationClick(
+                    parkModel = viewModel.smartPark.value.firstOrNull { it.park.id == id }?.park
+                )
                 goToLocation(
                     point,
-                    ZOOM_10F,
-                    true
+                    ZOOM_LEVEL3,
+                    viewModel.smartPark.value.firstOrNull { it.park.id == id } == null
                 )
                 updateList(listOf())
                 transformRcv()
             }
         }
         binding.mapTrack.setOnClickListener {
-            currentLocation?.let {
-                goToLocation(
-                    it,
-                    ZOOM_15F,
-                )
-            }
+            goToLocation(
+                currentLocation,
+                ZOOM_LEVEL1,
+            )
         }
         binding.mapSearchEdt.addTextChangedListener(object: TextWatcher {
             override fun beforeTextChanged(
-                s: CharSequence?,
-                start: Int,
-                count: Int,
-                after: Int
+                s: CharSequence?, start: Int, count: Int, after: Int
             ) {
                 //suppress
             }
 
             override fun onTextChanged(
-                s: CharSequence?,
-                start: Int,
-                before: Int,
-                count: Int
+                s: CharSequence?, start: Int, before: Int, count: Int
             ) {
                 s?.let { query ->
                     if (query.isNotEmpty()) {
@@ -270,6 +319,90 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                 //suppress
             }
         })
+
+        pointAnnotationManager?.apply {
+            addClickListener(
+                OnPointAnnotationClickListener { pointAnnotation ->
+                    handleOnLocationClick(pointAnnotation)
+                    isRouteHasBeenDraw = false
+                    markedLocation = pointAnnotation.point
+                    transformRightIcon(true)
+                    false
+                }
+            )
+        }
+
+        binding.parkInfoContainer.setOnClickListener {
+            (activity as MainActivity).mainNavController()
+                .navigate(R.id.parkDetailFragment, Bundle().apply {
+                    putParcelable(ParkModel::class.java.name, currentShowingPark)
+                    putString(
+                        ParkModel::class.java.name + "distance",
+                        binding.parkDistance.text.toString()
+                    )
+                })
+        }
+
+        handlePriorityAction()
+    }
+
+    private fun handlePriorityAction() {
+        binding.mapPrioritySmart.setOnClickListener {
+            viewModel.updateMapPrioritize(
+                isSmart = !viewModel.mapPrioritize.value.isSmart
+            )
+        }
+        binding.mapPriorityCapacity.setOnClickListener {
+            viewModel.updateMapPrioritize(
+                priority = SmartPrioritize.SLOT
+            )
+        }
+        binding.mapPriorityDistance.setOnClickListener {
+            viewModel.updateMapPrioritize(
+                priority = SmartPrioritize.DISTANCE
+            )
+        }
+        binding.mapPriorityPrice.setOnClickListener {
+            viewModel.updateMapPrioritize(
+                priority = SmartPrioritize.PRICE
+            )
+        }
+        binding.mapPriorityClassify.setOnClickListener {
+            viewModel.updateMapPrioritize(
+                isOpening = !viewModel.mapPrioritize.value.isOpening
+            )
+        }
+    }
+
+    private fun handleOnLocationClick(pointAnnotation: PointAnnotation? = null, parkModel: ParkModel? = null) {
+        val inMarkerParkModel = runCatching {
+            Gson().fromJson(pointAnnotation?.getData(), ParkModel::class.java)
+        }.getOrNull() ?: parkModel ?: return
+        currentShowingPark = inMarkerParkModel
+        val animation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
+        getOnRoadDistance(
+            currentLocation, Point.fromLngLat(inMarkerParkModel.long, inMarkerParkModel.lat)
+        ) { distance ->
+            inMarkerParkModel.let {
+                Glide
+                    .with(requireContext())
+                    .load(it.image)
+                    .centerCrop()
+                    .placeholder(R.drawable.parking_placeholder)
+                    .into(binding.parkImage)
+                binding.parkName.text = it.name
+                binding.parkAddress.text = it.address
+                binding.parkPrice.text = formatCurrencyPerHour(it.pricePerHour)
+                binding.parkDistance.text = getString(
+                    R.string.distance_meter,
+                    distance.toInt().toString()
+                )
+            }
+            binding.parkInfoContainer.apply {
+                hasVisible = true
+                startAnimation(animation)
+            }
+        }
     }
 
     override fun intiData() {
@@ -283,6 +416,175 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                 transformRcv()
             }
         }
+        scope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.parkInRange.collect { listPark ->
+                    val result = mutableListOf<SmartParkModel>()
+                    listPark.forEach { parkModel ->
+                        result.add(
+                            SmartParkModel(
+                                parkModel,
+                                currentLocation.distanceTo(Point.fromLngLat(parkModel.long, parkModel.lat)),
+                                0.0
+                            )
+                        )
+                        if (result.size == listPark.size) {
+                            viewModel.smartClassifyPark(result)
+                        }
+                        // getOnRoadDistance(
+                        //     currentLocation,
+                        //     Point.fromLngLat(parkModel.long, parkModel.lat)
+                        // ) {
+                        //     result.add(SmartParkModel(parkModel, it, 0.0))
+                        //     if (result.size == listPark.size) {
+                        //         viewModel.smartClassifyPark(result)
+                        //     }
+                        // }
+                    }
+                }
+            }
+        }
+        scope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                var isOpening = false
+                viewModel.mapPrioritize.collect { mapPrioritize ->
+                    handlePrioritizeSmart(mapPrioritize.isSmart)
+                    handleItemPrioritizeClick(mapPrioritize.priority)
+                    if (isOpening != mapPrioritize.isOpening) {
+                        isOpening = mapPrioritize.isOpening
+                        handlePrioritizeBlockAnim(mapPrioritize.isOpening)
+                    }
+                }
+            }
+        }
+        scope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.smartPark.collect { listPark ->
+                    pointAnnotationManager?.delete(
+                        pointAnnotationManager?.annotations?.filter {
+                            it.getData() != null && it.getData() !is JsonNull
+                        } ?: listOf()
+                    )
+                    listPark.divideIntoGroups().forEachIndexed { index, group ->
+                        group.forEach { smartParkModel ->
+                            addAnnotationToMap(
+                                Point.fromLngLat(smartParkModel.park.long, smartParkModel.park.lat),
+                                createBitmapFromView(
+                                    ParkingMarker.Builder(requireContext())
+                                        .setPrice(smartParkModel.park.pricePerHour)
+                                        .setDistance(smartParkModel.distance)
+                                        .setSlot(
+                                            smartParkModel.park.currentSlot,
+                                            smartParkModel.park.maxSlot
+                                        )
+                                        .setPriority(viewModel.mapPrioritize.value.priority)
+                                        .suggestStatus(
+                                            when (index) {
+                                                0 -> ParkingMarker.Companion.Status.EXCELLENT
+                                                1 -> ParkingMarker.Companion.Status.GOOD
+                                                2 -> ParkingMarker.Companion.Status.NORMAL
+                                                3 -> ParkingMarker.Companion.Status.BAD
+                                                else -> ParkingMarker.Companion.Status.NORMAL
+                                            }
+                                        )
+                                        .build()
+                                ),
+                                parkModel = smartParkModel.park
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handlePrioritizeSmart(isSmart: Boolean) {
+        binding.mapPrioritySmart.apply {
+            backgroundTintList = if (!isSmart) resources.getColorStateList(
+                R.color.white, null
+            ) else null
+            setImageResource(
+                if (isSmart) R.drawable.smart
+                else R.drawable.black_smart
+            )
+        }
+    }
+
+    private fun handlePrioritizeBlockAnim(isSetOpen: Boolean) {
+        if (currentPriorityBlockHeight == 0) currentPriorityBlockHeight = binding.mapPriority.measuredHeight
+
+        val animator = if (!isSetOpen) ValueAnimator.ofInt(currentPriorityBlockHeight, dpToPx(52))
+        else ValueAnimator.ofInt(dpToPx(52), currentPriorityBlockHeight)
+        animator.addUpdateListener { animation ->
+            val value = animation.animatedValue as Int
+            val layoutParams = binding.mapPriority.layoutParams
+            layoutParams.height = value
+            binding.mapPriority.layoutParams = layoutParams
+        }
+        animator.duration = 300
+        if (!isSetOpen) animator.doOnStart {
+            for (i in 1 until binding.mapPriority.childCount) {
+                val childView = binding.mapPriority.getChildAt(i)
+                childView.hasVisible = false
+            }
+        }
+        if (isSetOpen) animator.doOnEnd {
+            for (i in 1 until binding.mapPriority.childCount) {
+                val childView = binding.mapPriority.getChildAt(i)
+                childView.hasVisible = true
+            }
+        }
+        animator.start()
+    }
+
+    private fun handleItemPrioritizeClick(prioritize: SmartPrioritize) {
+        binding.mapPriorityCapacity.apply {
+            setTextColor(
+                resources.getColor(
+                    if (prioritize == SmartPrioritize.SLOT) R.color.black
+                    else R.color.gray, null
+                )
+            )
+            setTypeface(
+                typeface, if (prioritize == SmartPrioritize.SLOT) Typeface.BOLD
+                else Typeface.NORMAL
+            )
+        }
+        binding.mapPriorityDistance.apply {
+            setTextColor(
+                resources.getColor(
+                    if (prioritize == SmartPrioritize.DISTANCE) R.color.black
+                    else R.color.gray, null
+                )
+            )
+            setTypeface(
+                typeface, if (prioritize == SmartPrioritize.DISTANCE) Typeface.BOLD
+                else Typeface.NORMAL
+            )
+        }
+        binding.mapPriorityPrice.apply {
+            setTextColor(
+                resources.getColor(
+                    if (prioritize == SmartPrioritize.PRICE) R.color.black
+                    else R.color.gray, null
+                )
+            )
+            setTypeface(
+                typeface, if (prioritize == SmartPrioritize.PRICE) Typeface.BOLD
+                else Typeface.NORMAL
+            )
+        }
+    }
+
+    private var updateRidingJob: Job? = null
+    private fun updateRidingRoute(position: Point) {
+        if (updateRidingJob?.isCompleted == false) return
+        updateRidingJob = viewLifecycleOwner.lifecycleScope.launch {
+            if (isRouteHasBeenDraw && markedLocation != null) {
+                direction(position, markedLocation!!)
+            }
+            delay(1000L)
+        }
     }
 
     private fun direction(
@@ -291,7 +593,7 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
     ) {
         val routeOptions =
             RouteOptions.builder()
-                .applyDefaultNavigationOptions(DirectionsCriteria.PROFILE_CYCLING)
+                .applyDefaultNavigationOptions(DirectionsCriteria.PROFILE_DRIVING)
                 .coordinatesList(listOf(start, end))
                 .build()
 
@@ -314,10 +616,46 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                 routes: List<NavigationRoute>,
                 routerOrigin: String
             ) {
+                isRouteHasBeenDraw = true
                 drawRoute(
                     binding.mapView.mapboxMap,
                     routes.firstOrNull()?.directionsRoute?.geometry() ?: ""
                 )
+            }
+        })
+    }
+
+    private fun getOnRoadDistance(
+        start: Point,
+        end: Point,
+        onDistance: (Double) -> Unit
+    ) {
+        val routeOptions =
+            RouteOptions.builder()
+                .applyDefaultNavigationOptions(DirectionsCriteria.PROFILE_DRIVING)
+                .coordinatesList(listOf(start, end))
+                .build()
+
+        mapboxNavigation.requestRoutes(routeOptions, object: NavigationRouterCallback {
+            override fun onCanceled(
+                routeOptions: RouteOptions,
+                routerOrigin: String
+            ) {
+                onDistance.invoke(start.distanceTo(end))
+            }
+
+            override fun onFailure(
+                reasons: List<RouterFailure>,
+                routeOptions: RouteOptions
+            ) {
+                onDistance.invoke(start.distanceTo(end))
+            }
+
+            override fun onRoutesReady(
+                routes: List<NavigationRoute>,
+                routerOrigin: String
+            ) {
+                onDistance.invoke(routes.firstOrNull()?.directionsRoute?.distance() ?: 0.0)
             }
         })
     }
@@ -362,7 +700,7 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
 
     private fun goToLocation(
         point: Point,
-        zoom: Double = ZOOM_10F,
+        zoom: Double = ZOOM_LEVEL2,
         isNeedAddMarker: Boolean = false
     ) {
         updateCamera(point, zoom)
@@ -371,7 +709,8 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
 
     private fun addAnnotationToMap(
         point: Point,
-        markerView: Bitmap? = null
+        markerView: Bitmap? = null,
+        parkModel: ParkModel? = null
     ) {
         val markerIcon = markerView ?: run {
             val redMarker = BitmapFactory.decodeResource(
@@ -385,67 +724,33 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
                 true
             )
         }
-        val pointAnnotationManager = binding.mapView.annotations.createPointAnnotationManager(
-            AnnotationConfig()
-        )
-//        pointAnnotationManager.deleteAll()
         val pointAnnotationOptions: PointAnnotationOptions = PointAnnotationOptions()
             .withPoint(point)
             .withIconImage(markerIcon)
-        pointAnnotationManager.create(pointAnnotationOptions)
+
+        parkModel?.also {
+            pointAnnotationOptions.withData(Gson().toJsonTree(parkModel))
+        } ?: run {
+            pointAnnotationManager?.delete(
+                pointAnnotationManager?.annotations?.filter {
+                    it.getData() == null || it.getData() is JsonNull
+                } ?: listOf()
+            )
+        }
+        pointAnnotationManager?.create(pointAnnotationOptions)
     }
 
     private fun updateCamera(
         point: Point,
-        zoom: Double = ZOOM_10F
+        zoom: Double = ZOOM_LEVEL2
     ) {
-        val mapAnimationOptions = MapAnimationOptions.Builder().duration(
-            if ((activity as MainActivity).isFirstTimeLogin) 1000L
-            else 0L
-        ).build()
+        val mapAnimationOptions = MapAnimationOptions.Builder().duration(1000L).build()
         binding.mapView.camera.easeTo(
             CameraOptions.Builder()
                 .center(point)
                 .zoom(zoom)
                 .pitch(45.0)
                 .padding(EdgeInsets(100.0, 0.0, 0.0, 0.0)).build(), mapAnimationOptions
-        )
-        (activity as MainActivity).isFirstTimeLogin = false
-    }
-
-    private fun checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
-        }
-    }
-
-    private fun createBitmapFromView(
-        view: View,
-        divScale: Double = 2.5
-    ): Bitmap {
-        view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-        view.layout(0, 0, view.measuredWidth, view.measuredHeight)
-        val bitmap = Bitmap.createBitmap(
-            view.measuredWidth,
-            view.measuredHeight,
-            Bitmap.Config.ARGB_8888
-        )
-        val canvas = Canvas(bitmap)
-        view.draw(canvas)
-        return Bitmap.createScaledBitmap(
-            bitmap,
-            (view.measuredWidth / divScale).toInt(),
-            (view.measuredHeight / divScale).toInt(),
-            true
         )
     }
 }

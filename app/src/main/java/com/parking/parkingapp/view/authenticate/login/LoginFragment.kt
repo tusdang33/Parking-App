@@ -1,8 +1,6 @@
 package com.parking.parkingapp.view.authenticate.login
 
 import android.view.LayoutInflater
-import android.view.View
-import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.viewModels
@@ -16,7 +14,7 @@ import com.parking.parkingapp.databinding.FragmentLoginBinding
 import com.parking.parkingapp.view.BaseFragment
 import com.parking.parkingapp.view.MainActivity
 import com.parking.parkingapp.view.authenticate.reset_password.ResetPasswordBottomSheet
-import com.parking.parkingapp.view.profile.ChangeProfileSuccessDialog
+import com.parking.parkingapp.view.profile.SuccessDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -34,7 +32,7 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
     override fun initActions() {
         binding.loginGoReset.setOnClickListener {
             ResetPasswordBottomSheet().apply {
-                onSuccess = { ChangeProfileSuccessDialog().shows(parentFragmentManager) }
+                onSuccess = { SuccessDialog().shows(parentFragmentManager) }
             }.shows(parentFragmentManager)
         }
 
@@ -83,7 +81,7 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
                         //suppress
                     }
 
-                    State.Loading -> {
+                    is State.Loading -> {
                         loadingVisible(true)
                     }
 
@@ -126,7 +124,7 @@ class LoginFragment: BaseFragment<FragmentLoginBinding>() {
         val navOption = NavOptions.Builder()
             .setPopUpTo(R.id.loginFragment, true)
             .build()
-        findNavController().navigate(R.id.action_loginFragment_to_mapboxFragment, null, navOption)
+        findNavController().navigate(R.id.action_loginFragment_to_mapHolderFragment, null, navOption)
     }
 
     override fun inflateBinding(

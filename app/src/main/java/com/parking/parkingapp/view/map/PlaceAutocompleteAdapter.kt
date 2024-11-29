@@ -6,8 +6,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.mapbox.geojson.Point
+import com.parking.parkingapp.common.hasVisible
 import com.parking.parkingapp.data.model.AutoCompleteModel
 import com.parking.parkingapp.databinding.SuggestItemBinding
+import com.parking.parkingapp.view.map.model.PlaceDiffUtil
 
 class PlaceAutocompleteAdapter:
     RecyclerView.Adapter<PlaceAutocompleteAdapter.SuggestViewHolder>() {
@@ -16,39 +18,32 @@ class PlaceAutocompleteAdapter:
         ViewHolder(binding.root) {
         fun bind(item: AutoCompleteModel) {
             binding.root.setOnClickListener {
-                onItemClick?.invoke(item.coordinates)
+                onItemClick?.invoke(item.id, item.coordinates)
             }
             binding.suggestText.text = item.addressName
-            binding.suggestSubText.text = item.placeName
+            binding.suggestSubText.apply {
+                if (item.placeName.isNotBlank()) {
+                    hasVisible = true
+                    text = item.placeName
+                } else {
+                    hasVisible = false
+                }
+            }
         }
     }
 
     private val suggestList: MutableList<AutoCompleteModel> = mutableListOf()
-    private var onItemClick: ((Point) -> Unit)? = null
-    fun setOnItemClick(onClick: (Point) -> Unit) {
+    private var onItemClick: ((String, Point) -> Unit)? = null
+    fun setOnItemClick(onClick: (String, Point) -> Unit) {
         onItemClick = onClick
     }
 
-    fun updateList(data: List<AutoCompleteModel>) {
-        val diffCallback = object: DiffUtil.Callback() {
-            override fun getOldListSize(): Int = suggestList.size
-
-            override fun getNewListSize(): Int = data.size
-
-            override fun areItemsTheSame(
-                oldItemPosition: Int,
-                newItemPosition: Int
-            ): Boolean = suggestList[oldItemPosition].id == data[oldItemPosition].id
-
-            override fun areContentsTheSame(
-                oldItemPosition: Int,
-                newItemPosition: Int
-            ): Boolean = suggestList[oldItemPosition] == data[oldItemPosition]
-        }
+    fun updateList(newList: List<AutoCompleteModel>) {
+        val diffUtilCallback = PlaceDiffUtil(suggestList, newList)
+        val diffResult = DiffUtil.calculateDiff(diffUtilCallback)
         suggestList.clear()
-        suggestList.addAll(data)
-        notifyDataSetChanged()
-//        DiffUtil.calculateDiff(diffCallback).dispatchUpdatesTo(this)
+        suggestList.addAll(newList)
+        diffResult.dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(
