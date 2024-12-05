@@ -3,6 +3,7 @@ package com.parking.parkingapp.view.park
 import android.annotation.SuppressLint
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.setFragmentResult
@@ -104,7 +105,7 @@ class ParkDetailFragment: BaseFragment<FragmentParkDetailBinding>() {
                 totalHour = binding.totalTime.text.split(" ").first().toDouble(),
                 isSubmitInOpenTime = run {
                     val endTime = LocalTime.parse(formatTime(currentParkDetail!!.closeTime), dateFormatter)
-                    LocalTime.now().isAfter(endTime)
+                    LocalTime.now().isBefore(endTime)
                 }
             )
         }

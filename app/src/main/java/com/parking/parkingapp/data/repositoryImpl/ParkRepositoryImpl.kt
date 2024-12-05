@@ -59,15 +59,24 @@ class ParkRepositoryImpl @Inject constructor(
 
     override suspend fun rentPark(myRentedPark: MyRentedPark): Resource<MyRentedPark> {
         return try {
-            val result: MyRentedPark
-            userCollectionRef
-                .document(myRentedPark.userId)
-                .collection(CollectionRef.MY_PARK.value)
-                .document().apply {
-                    result = myRentedPark.copy(id = this.id)
-                    set(result.toRentParkEntity()).await()
-                }
-            Resource.Success(result)
+            var result = RentParkEntity()
+            Firebase.firestore.runTransaction { transaction ->
+                transaction.set(
+                    userCollectionRef
+                        .document(myRentedPark.userId)
+                        .collection(CollectionRef.MY_PARK.value)
+                        .document().also {
+                            result = myRentedPark.copy(id = it.id).toRentParkEntity()
+                        },
+                    result
+                )
+                transaction.update(
+                    parkCollectionRef.document(myRentedPark.park.id),
+                    "currentSlot",
+                    myRentedPark.park.currentSlot + 1
+                )
+            }.await()
+            Resource.Success(result.toMyRentedPark())
         } catch (e: Exception) {
             Resource.Fail(e.message)
         }
@@ -190,6 +199,11 @@ class ParkRepositoryImpl @Inject constructor(
                             .document(myRentedPark.id),
                         "status",
                         RentStatus.RENTED.value
+                    )
+                    transaction.update(
+                        parkCollectionRef.document(myRentedPark.park.id),
+                        "currentSlot",
+                        (myRentedPark.park.currentSlot - 1).coerceAtLeast(0)
                     )
                 }
             }.await()

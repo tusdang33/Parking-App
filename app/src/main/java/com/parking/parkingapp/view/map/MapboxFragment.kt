@@ -418,6 +418,13 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         }
         scope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.park.collect {
+                    viewModel.getParkInRange(binding.mapView.mapboxMap.cameraState.center)
+                }
+            }
+        }
+        scope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.parkInRange.collect { listPark ->
                     val result = mutableListOf<SmartParkModel>()
                     listPark.forEach { parkModel ->
@@ -582,6 +589,7 @@ class MapboxFragment: BaseFragment<FragmentMapboxBinding>() {
         updateRidingJob = viewLifecycleOwner.lifecycleScope.launch {
             if (isRouteHasBeenDraw && markedLocation != null) {
                 direction(position, markedLocation!!)
+                viewModel.getParkInRange(binding.mapView.mapboxMap.cameraState.center)
             }
             delay(1000L)
         }

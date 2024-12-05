@@ -1,5 +1,6 @@
 package com.parking.parkingapp.view.map
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.mapbox.geojson.Point
 import com.parking.parkingapp.common.BaseViewModel
@@ -32,7 +33,9 @@ class MapViewModel @Inject constructor(
     )
     val searchSuggestion = _searchSuggestion.asStateFlow()
 
-    private val _park = mutableListOf<ParkModel>()
+    private val _park : MutableStateFlow<List<ParkModel>> = MutableStateFlow(listOf())
+    val park = _park.asStateFlow()
+
     private val _parkInRange: MutableStateFlow<List<ParkModel>> = MutableStateFlow(listOf())
     val parkInRange = _parkInRange.asStateFlow()
 
@@ -46,8 +49,7 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             parkRepository.getPark().collect { result ->
                 result.success {
-                    _park.clear()
-                    _park.addAll(it?.toList() ?: listOf())
+                    _park.value = it?.toList() ?: listOf()
                 }
             }
         }
@@ -64,7 +66,7 @@ class MapViewModel @Inject constructor(
         debounceJob = viewModelScope.launch {
             delay(500)
             directionRepository.getSearchSuggestion(query).collect {
-                _searchSuggestion.value = _park.filter { park ->
+                _searchSuggestion.value = _park.value.filter { park ->
                     park.name.contains(query, true) || park.address.contains(query, true)
                 }.map { park -> park.toAutoCompleteModel() } + (it ?: listOf())
             }
@@ -78,7 +80,7 @@ class MapViewModel @Inject constructor(
         debounceJob?.cancel()
         debounceJob = viewModelScope.launch {
             delay(1000)
-            _parkInRange.value = _park.filter {
+            _parkInRange.value = _park.value.filter {
                 val e = currentCoordinate.distanceTo(
                     Point.fromLngLat(it.long, it.lat)
                 )

@@ -1,6 +1,7 @@
 package com.parking.parkingapp.view.my_parking
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import com.parking.parkingapp.common.BaseViewModel
@@ -19,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
 
@@ -39,6 +41,9 @@ class MyParkingViewModel @Inject constructor(
                         result.success { listRentedPark ->
                             listRentedPark?.partition {
                                 val delimiterEndTime = it.endTime.split(":")
+                                LocalDate.now() == runCatching {
+                                    LocalDate.parse(it.rentedDate)
+                                }.getOrNull() &&
                                 LocalTime.now() > LocalTime.of(
                                     delimiterEndTime.first().toInt(),
                                     delimiterEndTime.last().toInt()

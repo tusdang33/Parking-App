@@ -33,10 +33,6 @@ fun Calendar.validatePickedTime(
             it.get(Calendar.MINUTE)
         )
     }
-    val isInTime = isCurrentTimeInRange(
-        formatTime(parkModel.openTime),
-        formatTime(parkModel.closeTime)
-    )
     val now = LocalTime.now()
     val isOpen = isCurrentTimeInRange(start, close)
     return if (isStartTime) {
@@ -44,11 +40,11 @@ fun Calendar.validatePickedTime(
             pickedLocalTime.isBefore(start) -> {
                 Calendar.getInstance().apply {
                     set(
-                        Calendar.HOUR_OF_DAY, if (isInTime) now.hour
+                        Calendar.HOUR_OF_DAY, if (isOpen) now.hour
                         else start.hour
                     )
                     set(
-                        Calendar.MINUTE, if (isInTime) now.minute
+                        Calendar.MINUTE, if (isOpen) now.minute
                         else start.minute
                     )
                 }
@@ -83,7 +79,7 @@ fun Calendar.validatePickedTime(
                 }
             }
 
-            pickedLocalTime.isBefore(now) || pickedLocalTime.isBefore(start) -> null
+            (isOpen && pickedLocalTime.isBefore(now)) || pickedLocalTime.isBefore(start) -> null
 
             pickedStartTime != null && pickedLocalTime <= pickedStartTime -> null
 

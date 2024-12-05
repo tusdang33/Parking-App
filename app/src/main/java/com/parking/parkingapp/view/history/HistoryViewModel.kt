@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
 
@@ -31,17 +32,8 @@ class HistoryViewModel @Inject constructor(
                 user?.let { fuser ->
                     parkRepository.getMyRentedPark(fuser.uid).collect { result ->
                         result.success { listRentedPark ->
-                            listRentedPark?.partition {
-                                val delimiterEndTime = it.endTime.split(":")
-                                LocalTime.now() > LocalTime.of(
-                                    delimiterEndTime.first().toInt(),
-                                    delimiterEndTime.last().toInt()
-                                )
-                            }?.let { (invalidList, validList) ->
-                                parkRepository.updateOvertimeRent(invalidList)
-                                _historyPark.value = validList.toList()
-                                    .filter { it.status == RentStatus.RENTED }
-                            }
+                            _historyPark.value = listRentedPark?.toList()
+                                ?.filter { it.status == RentStatus.RENTED } ?: listOf()
                         }
                     }
                 }
