@@ -101,6 +101,20 @@ class ParkRepositoryImpl @Inject constructor(
             awaitClose()
         }
 
+    override suspend fun updateParkCurrentSlot(parkId: String, slot: Int): Resource<Unit> {
+        return try {
+            parkCollectionRef
+                .document(parkId)
+                .update(
+                    "currentSlot",
+                    slot
+                ).await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Fail(e.message)
+        }
+    }
+
     override fun upDate() {
         Firebase.firestore.runTransaction { transaction ->
             parkStub.forEach { park ->

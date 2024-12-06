@@ -10,6 +10,7 @@ interface ParkRepository {
     suspend fun getParkById(parkId: String): Resource<ParkModel?>
     suspend fun rentPark(myRentedPark: MyRentedPark): Resource<MyRentedPark>
     fun getMyRentedPark(userId: String): Flow<Resource<List<MyRentedPark>>>
+    suspend fun updateParkCurrentSlot(parkId: String, slot: Int) : Resource<Unit>
     fun upDate()
 
     suspend fun addRentTime(

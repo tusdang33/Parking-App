@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.mapbox.geojson.Point
 import com.parking.parkingapp.common.BaseViewModel
+import com.parking.parkingapp.common.fail
 import com.parking.parkingapp.common.success
 import com.parking.parkingapp.data.model.AutoCompleteModel
 import com.parking.parkingapp.data.model.ParkModel
@@ -52,6 +53,11 @@ class MapViewModel @Inject constructor(
                     _park.value = it?.toList() ?: listOf()
                 }
             }
+        }
+
+        viewModelScope.launch {
+            Log.e("tudm", "launch ", )
+            randomChangeParkSlot()
         }
     }
 
@@ -173,6 +179,27 @@ class MapViewModel @Inject constructor(
             SmartPrioritize.SLOT -> emptySlot / capacity.toDouble()
             SmartPrioritize.PRICE -> price.toDouble()
             SmartPrioritize.DISTANCE -> 1 / (distance / 1000.0)
+        }
+    }
+
+    private suspend fun randomChangeParkSlot() {
+        while (true) {
+            delay(5000L)
+            _parkInRange.value.shuffled().take(3).forEach {
+                if ((it.currentSlot + 5) > it.maxSlot) {
+                    parkRepository.updateParkCurrentSlot(it.id, it.currentSlot + 5).success {
+                        Log.e("tudm", "randomChangeParkSlot: ", )
+                    }.fail {
+                        Log.e("tudm", "errro $it: ", )
+                    }
+                } else {
+                    parkRepository.updateParkCurrentSlot(it.id, it.maxSlot / 2).success {
+                        Log.e("tudm", "randomChangeParkSlot: ", )
+                    }.fail {
+                        Log.e("tudm", "errro $it: ", )
+                    }
+                }
+            }
         }
     }
 }
