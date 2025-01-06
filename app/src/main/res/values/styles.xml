@@ -28,6 +28,15 @@
         <item name="android:background">@drawable/filled_button</item>
     </style>
 
+    <style name="BkaFilledButton" parent="Widget.AppCompat.Button">
+        <item name="android:backgroundTint">#ce1628</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:background">@drawable/filled_button</item>
+    </style>
+
     <style name="RoundedWhiteButton" parent="Widget.AppCompat.Button">
         <item name="android:backgroundTint">@color/white</item>
         <item name="android:padding">16dp</item>
