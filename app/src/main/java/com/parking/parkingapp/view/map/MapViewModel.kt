@@ -56,7 +56,6 @@ class MapViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            Log.e("tudm", "launch ", )
             randomChangeParkSlot()
         }
     }
@@ -183,23 +182,51 @@ class MapViewModel @Inject constructor(
     }
 
     private suspend fun randomChangeParkSlot() {
+        val tag = "Fake change slot"
+        val plusNumber = 5
+        val delayTime = 5000L
         while (true) {
-            delay(5000L)
-            _parkInRange.value.shuffled().take(3).forEach {
-                if ((it.currentSlot + 5) > it.maxSlot) {
-                    parkRepository.updateParkCurrentSlot(it.id, it.currentSlot + 5).success {
-                        Log.e("tudm", "randomChangeParkSlot: ", )
+            delay(delayTime)
+            _parkInRange.value.shuffled().take(3).forEach { park ->
+                val updatingSlot = park.currentSlot + plusNumber
+                if (updatingSlot <= park.maxSlot) {
+                    parkRepository.updateParkCurrentSlot(park.id, updatingSlot).success {
+                        Log.d(
+                            tag,
+                            """
+                                Update success: ${park.name}
+                                from ${park.currentSlot}/${park.maxSlot} to ${updatingSlot}/${park.maxSlot}
+                            """.trimIndent()
+                        )
                     }.fail {
-                        Log.e("tudm", "errro $it: ", )
+                        Log.e(tag, "Update fail $it: ")
                     }
                 } else {
-                    parkRepository.updateParkCurrentSlot(it.id, it.maxSlot / 2).success {
-                        Log.e("tudm", "randomChangeParkSlot: ", )
+                    parkRepository.updateParkCurrentSlot(park.id, park.maxSlot / 2).success {
+                        Log.d(
+                            tag,
+                            """
+                                Update success: ${park.name}
+                                from ${park.currentSlot}/${park.maxSlot} to ${park.maxSlot / 2}/${park.maxSlot}
+                            """.trimIndent()
+                        )
                     }.fail {
-                        Log.e("tudm", "errro $it: ", )
+                        Log.e(tag, "Update fail $it: ")
                     }
                 }
+                Log.d(
+                    tag,
+                    "__________________________________________________"
+                )
             }
+            Log.d(
+                tag,
+                """
+                    =
+                    =
+                    =
+                """.trimIndent()
+            )
         }
     }
 }

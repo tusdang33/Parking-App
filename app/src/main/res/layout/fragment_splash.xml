@@ -7,12 +7,12 @@
     android:orientation="vertical">
 
     <ImageView
-        android:layout_width="match_parent"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:scaleType="fitXY"
         android:adjustViewBounds="true"
         android:layout_gravity="center"
-        android:src="@drawable/splash_x"
+        android:src="@drawable/bka_logo"
         tools:ignore="ContentDescription" />
 
     <Space
@@ -23,6 +23,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:src="@drawable/splash_sub_img"
+        android:src="@drawable/splash_v_park"
         tools:ignore="ContentDescription" />
 </LinearLayout>
