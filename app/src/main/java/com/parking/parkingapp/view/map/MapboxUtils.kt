@@ -30,6 +30,7 @@ import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.turf.TurfMeasurement
 import com.parking.parkingapp.view.map.model.SmartParkModel
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -112,7 +113,7 @@ fun calculateDecimalTimeDifference(startTime: Calendar, endTime: Calendar): Doub
 }
 
 fun Double.roundToOneDecimal(): Double {
-    val decimalFormat = DecimalFormat("#.#")
+    val decimalFormat = DecimalFormat("#.#", DecimalFormatSymbols(Locale.US))
     return decimalFormat.format(this).toDouble()
 }
 

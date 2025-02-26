@@ -1,8 +1,10 @@
 package com.parking.parkingapp.view.authenticate.login
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.navigation.NavOptions
@@ -17,6 +19,7 @@ import com.parking.parkingapp.view.authenticate.reset_password.ResetPasswordBott
 import com.parking.parkingapp.view.profile.SuccessDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.io.File
 
 @AndroidEntryPoint
 class LoginFragment: BaseFragment<FragmentLoginBinding>() {

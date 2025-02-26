@@ -136,6 +136,13 @@
                 android:text="@string/login_button" />
         </FrameLayout>
 
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/sace"
+            style="@style/BlackFilledButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sace" />
+
         <TextView
             android:id="@+id/login_go_reset"
             android:layout_width="wrap_content"

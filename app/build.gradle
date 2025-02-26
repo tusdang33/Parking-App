@@ -28,6 +28,54 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions("default")
+    productFlavors {
+        parkingApp1 {
+            applicationId "com.parking.parkingapp1"
+        }
+
+        parkingApp2 {
+            applicationId "com.parking.parkingapp2"
+        }
+
+        parkingApp3 {
+            applicationId "com.parking.parkingapp3"
+        }
+
+        parkingApp4 {
+            applicationId "com.parking.parkingapp4"
+        }
+
+        parkingApp5 {
+            applicationId "com.parking.parkingapp5"
+        }
+
+        parkingApp6 {
+            applicationId "com.parking.parkingapp6"
+        }
+
+        parkingApp7 {
+            applicationId "com.parking.parkingapp7"
+        }
+
+        parkingApp8 {
+            applicationId "com.parking.parkingapp8"
+        }
+
+        parkingApp9 {
+            applicationId "com.parking.parkingapp9"
+        }
+
+        parkingApp10 {
+            applicationId "com.parking.parkingapp10"
+        }
+
+        parkingApp11 {
+            applicationId "com.parking.parkingapp11"
+        }
+
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
